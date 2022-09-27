@@ -1,4 +1,4 @@
-package bnpl
+package loans
 
 import (
 	"github.com/AltScore/gothic/pkg/es"
