@@ -1,4 +1,4 @@
-module github.com/AltScore/gothic.git
+module github.com/AltScore/gothic
 
 go 1.18
 

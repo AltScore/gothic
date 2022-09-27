@@ -3,7 +3,7 @@ package bnpl
 import (
 	"fmt"
 
-	"github.com/AltScore/gothic.git/pkg/es"
+	"github.com/AltScore/gothic/pkg/es"
 )
 
 const EntityType = "bnpl"

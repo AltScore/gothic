@@ -1,7 +1,7 @@
 package bnpl
 
 import (
-	"github.com/AltScore/gothic.git/pkg/es"
+	"github.com/AltScore/gothic/pkg/es"
 )
 
 type ClientID string
