@@ -3,11 +3,13 @@ package bnpl
 import (
 	"fmt"
 	"time"
+
+	"github.com/AltScore/gothic/pkg/es"
 )
 
 type ID string
 
-func (id ID) New() ID {
+func NewId() ID {
 	return ID(fmt.Sprintf("flow-%d", time.Now().UnixNano()))
 }
 
@@ -15,7 +17,7 @@ func (id ID) Empty() bool {
 	return id == ""
 }
 
-func (id ID) Eq(id2 ID) bool {
+func (id ID) Eq(id2 es.EntityID) bool {
 	return id == id2
 }
 

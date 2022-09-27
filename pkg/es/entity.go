@@ -1,8 +1,7 @@
 package es
 
-type EntityID[ID EntityID[ID]] interface {
-	New() ID
+type EntityID interface {
 	Empty() bool
-	Eq(ID) bool
+	Eq(id EntityID) bool
 	String() string
 }

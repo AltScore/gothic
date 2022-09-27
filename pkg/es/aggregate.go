@@ -12,7 +12,7 @@ type Versioned interface {
 	SetVersion(int)
 }
 
-type AggregateBase[ID EntityID[ID], Snapshot Versioned] struct {
+type AggregateBase[ID EntityID, Snapshot Versioned] struct {
 	entityType string
 	entityID   ID
 	version    int
@@ -21,11 +21,13 @@ type AggregateBase[ID EntityID[ID], Snapshot Versioned] struct {
 	snapshot   Snapshot
 }
 
-func NewAgg[ID EntityID[ID], Snapshot Versioned](
+func NewAgg[ID EntityID, Snapshot Versioned](
+	id ID,
 	entityType string,
 	events []Event[ID, Snapshot],
 ) AggregateBase[ID, Snapshot] {
 	return AggregateBase[ID, Snapshot]{
+		entityID:   id,
 		entityType: entityType,
 		events:     events,
 		nextToSave: len(events),
@@ -45,12 +47,6 @@ func (a *AggregateBase[ID, Snapshot]) Snapshot() *Snapshot {
 }
 
 func (a *AggregateBase[ID, Snapshot]) Replay() error {
-	if len(a.events) == 0 {
-		a.entityID = a.entityID.New()
-	} else {
-		a.entityID = a.events[0].EntityID()
-	}
-
 	for _, e := range a.events {
 		if err := e.Apply(&a.snapshot); err != nil {
 			return err

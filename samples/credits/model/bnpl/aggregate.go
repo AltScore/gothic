@@ -15,7 +15,7 @@ type Aggregate struct {
 // Reify recreates an aggregate from a list of events stored to its current state.
 func Reify(previousEvents []Event) (*Aggregate, error) {
 	a := Aggregate{
-		base: es.NewAgg[ID, Snapshot](EntityType, previousEvents),
+		base: es.NewAgg[ID, Snapshot](NewId(), EntityType, previousEvents),
 	}
 
 	return &a, a.base.Replay()

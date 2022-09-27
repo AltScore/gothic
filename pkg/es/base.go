@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type Metadata[ID EntityID[ID]] struct {
+type Metadata[ID EntityID] struct {
 	entityType string
 	entityID   ID
 	type_      string
@@ -12,7 +12,7 @@ type Metadata[ID EntityID[ID]] struct {
 	datetime   time.Time
 }
 
-func NewMetadata[ID EntityID[ID]](
+func NewMetadata[ID EntityID](
 	entityType string,
 	entityID ID,
 	type_ string,
