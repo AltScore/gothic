@@ -1,4 +1,4 @@
-package bnpl
+package loans
 
 type State string
 

@@ -34,6 +34,10 @@ func NewAgg[ID EntityID, Snapshot Versioned](
 	}
 }
 
+func (a *AggregateBase[ID, Snapshot]) ID() ID {
+	return a.entityID
+}
+
 func (a *AggregateBase[ID, Snapshot]) EntityType() string {
 	return a.entityType
 }
@@ -42,8 +46,8 @@ func (a *AggregateBase[ID, Snapshot]) Version() int {
 	return a.version
 }
 
-func (a *AggregateBase[ID, Snapshot]) Snapshot() *Snapshot {
-	return &a.snapshot
+func (a *AggregateBase[ID, Snapshot]) Snapshot() Snapshot {
+	return a.snapshot
 }
 
 func (a *AggregateBase[ID, Snapshot]) Replay() error {
