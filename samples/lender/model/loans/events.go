@@ -1,4 +1,4 @@
-package bnpl
+package loans
 
 import (
 	"github.com/AltScore/gothic/pkg/es"
@@ -8,7 +8,7 @@ type ClientID string
 type Money float64
 type Percent float64
 
-type Event = es.Event[ID, Snapshot]
+type Event = es.Event[ID, LoanView]
 
 type StartFlowCmd struct {
 	ClientID      ClientID
@@ -23,7 +23,8 @@ type FlowStarted struct {
 	TotalAmount   Money
 }
 
-func (f FlowStarted) Apply(state *Snapshot) error {
+func (f FlowStarted) Apply(state *LoanView) error {
+	state.ID = f.EntityID()
 	state.ClientID = f.ClientID
 	state.TransactionID = f.TransactionID
 	state.TotalAmount = f.TotalAmount
@@ -39,7 +40,7 @@ type TermsAndConditionsAccepted struct {
 	AcceptConditions bool
 }
 
-func (t TermsAndConditionsAccepted) Apply(snapshot *Snapshot) error {
+func (t TermsAndConditionsAccepted) Apply(snapshot *LoanView) error {
 	snapshot.State = Accepted
 	snapshot.Term = t.Term
 	snapshot.DeferredPct = t.DeferredPct
@@ -50,7 +51,7 @@ type EmailConfirmed struct {
 	es.Metadata[ID]
 }
 
-func (e EmailConfirmed) Apply(snapshot *Snapshot) error {
+func (e EmailConfirmed) Apply(snapshot *LoanView) error {
 	snapshot.IsEmailConfirmed = true
 	snapshot.State = Confirmed
 	return nil

@@ -4,34 +4,39 @@ import (
 	"fmt"
 )
 
-type SnapshotWithVersion interface {
-	SetVersion(int)
+// VersionUpdater is a function that can be implemented by the Snapshot to set the version
+type VersionUpdater[Snapshot any] func(ss *Snapshot, version int)
+
+type AggregateBase[ID EntityID, Snapshot any] struct {
+	entityType    string
+	entityID      ID
+	version       int
+	events        []Event[ID, Snapshot]
+	nextToSave    int
+	snapshot      Snapshot
+	updateVersion VersionUpdater[Snapshot]
 }
 
-type Versioned interface {
-	SetVersion(int)
-}
-
-type AggregateBase[ID EntityID, Snapshot Versioned] struct {
-	entityType string
-	entityID   ID
-	version    int
-	events     []Event[ID, Snapshot]
-	nextToSave int
-	snapshot   Snapshot
-}
-
-func NewAgg[ID EntityID, Snapshot Versioned](
+func NewAgg[ID EntityID, Snapshot any](
 	id ID,
 	entityType string,
 	events []Event[ID, Snapshot],
+	updater VersionUpdater[Snapshot],
 ) AggregateBase[ID, Snapshot] {
-	return AggregateBase[ID, Snapshot]{
-		entityID:   id,
-		entityType: entityType,
-		events:     events,
-		nextToSave: len(events),
+	if updater == nil {
+		updater = func(ss *Snapshot, version int) {}
 	}
+	return AggregateBase[ID, Snapshot]{
+		entityID:      id,
+		entityType:    entityType,
+		events:        events,
+		nextToSave:    len(events),
+		updateVersion: updater,
+	}
+}
+
+func (a *AggregateBase[ID, Snapshot]) ID() ID {
+	return a.entityID
 }
 
 func (a *AggregateBase[ID, Snapshot]) EntityType() string {
@@ -72,7 +77,7 @@ func (a *AggregateBase[ID, Snapshot]) Apply(e Event[ID, Snapshot]) error {
 
 	a.version = e.Version()
 
-	a.snapshot.SetVersion(a.version)
+	a.updateVersion(&a.snapshot, a.version)
 
 	return nil
 }

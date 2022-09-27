@@ -5,7 +5,7 @@ To use, you should extend your Entity Aggregate from the AggregateBase struct.
 
 Example:
 
-	package bnpl
+	package loans
 
 	import (
 		"fmt"
@@ -13,7 +13,7 @@ Example:
 		"github.com/AltScore/gothic/pkg/es"
 	)
 
-	const EntityType = "bnpl"
+	const EntityType = "loans"
 
 	type Aggregate struct {
 		es.AggregateBase[ID, Snapshot]

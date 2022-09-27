@@ -1,4 +1,4 @@
-package bnpl
+package loans
 
 type State string
 
@@ -8,7 +8,7 @@ const (
 	Confirmed State = "confirmed"
 )
 
-type Snapshot struct {
+type LoanView struct {
 	ID               ID
 	Version          int
 	ClientID         ClientID
@@ -20,6 +20,6 @@ type Snapshot struct {
 	IsEmailConfirmed bool
 }
 
-func (s Snapshot) SetVersion(version int) {
+func (s LoanView) SetVersion(version int) {
 	s.Version = version
 }
