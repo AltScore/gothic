@@ -1,3 +1,6 @@
+<img src="gothic.png" width="360" alt="gopher">
+
+
 # Gothic A GO chassis framework to easy build microservices
 
 
