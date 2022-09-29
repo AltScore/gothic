@@ -45,13 +45,15 @@ type Event struct {
 	m *Metadata
 }
 
+var EmptyEvent = Event{}
+
 func (e Event) Data() interface{} {
 	return e.m.Data
 }
 
 type Option func(*Metadata)
 
-func New(name string, data any, opts ...Option) IEvent {
+func New(name string, data any, opts ...Option) Event {
 	m := Metadata{
 		ID:   uuid.New().String(),
 		Name: name,
@@ -73,7 +75,7 @@ func New(name string, data any, opts ...Option) IEvent {
 	}}
 }
 
-func For[Data any](a Aggregate, name string, data Data, opts ...Option) IEvent {
+func For[Data any](a Aggregate, name string, data Data, opts ...Option) Event {
 	return New(name, data, append(opts, WithAggregate(a))...)
 }
 
@@ -113,7 +115,7 @@ func WithAggregate(a Aggregate) Option {
 	}
 }
 
-func DataOf[T any](e IEvent) T {
+func DataOf[T any](e Event) T {
 	if data, ok := e.Data().(T); ok {
 		return data
 	}

@@ -155,7 +155,7 @@ func Test_Can_marshall_list_of_events(t *testing.T) {
 	codec.Register[eventWithOtherData](EventWithOtherDataName)
 
 	// GIVEN a list of events
-	events := []IEvent{
+	events := []Event{
 		New(EmptyEventName, emptyEventData{}, WithID("sample-id")),
 		New(EventWithDataName, eventWithData{
 			Str: "a nice value",
@@ -220,7 +220,7 @@ type docWithEvents struct {
 	Entries []entry `bson:"events"`
 }
 
-func unmarshalAll(bytes []byte) []IEvent {
+func unmarshalAll(bytes []byte) []Event {
 
 	doc := docWithEvents{}
 
@@ -229,7 +229,7 @@ func unmarshalAll(bytes []byte) []IEvent {
 	if err != nil {
 		panic(err)
 	}
-	var events []IEvent
+	var events []Event
 	for _, entry := range doc.Entries {
 		event, err := entry.ToEvent()
 		if err != nil {
@@ -241,7 +241,7 @@ func unmarshalAll(bytes []byte) []IEvent {
 	return events
 }
 
-func marshalAll(events []IEvent) ([]byte, error) {
+func marshalAll(events []Event) ([]byte, error) {
 	var bsonEvents []entry
 
 	for _, event := range events {
@@ -254,17 +254,17 @@ func marshalAll(events []IEvent) ([]byte, error) {
 	return bson.Marshal(doc)
 }
 
-func marshal(e IEvent) ([]byte, error) {
+func marshal(e Event) ([]byte, error) {
 	entry := From(e)
 
 	return bson.Marshal(entry)
 }
 
-func unmarshal(b []byte) (IEvent, error) {
+func unmarshal(b []byte) (Event, error) {
 	var entry entry
 	err := bson.Unmarshal(b, &entry)
 	if err != nil {
-		return nil, err
+		return EmptyEvent, err
 	}
 
 	return entry.ToEvent()

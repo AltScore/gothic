@@ -7,7 +7,7 @@ import (
 	"github.com/AltScore/gothic/pkg/es/event"
 )
 
-type Event = event.IEvent
+type Event = event.Event
 
 const EntityType = "loans"
 

@@ -31,7 +31,7 @@ type rawEntry struct {
 	Data             bson.Raw  `bson:"data"`
 }
 
-func From(event IEvent) *entry {
+func From(event Event) *entry {
 	id, name, version := event.Aggregate()
 
 	return &entry{
@@ -58,8 +58,8 @@ func (e *entry) Metadata() *Metadata {
 	}
 }
 
-func (e *entry) ToEvent() (*Event, error) {
-	return &Event{m: e.Metadata()}, nil
+func (e *entry) ToEvent() (Event, error) {
+	return Event{m: e.Metadata()}, nil
 }
 
 func (e *entry) UnmarshalBSON(data []byte) error {

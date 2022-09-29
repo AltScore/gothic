@@ -24,7 +24,7 @@ type LoanView struct {
 	IsEmailConfirmed bool
 }
 
-func (v *LoanView) Apply(event event.IEvent) error {
+func (v *LoanView) Apply(event event.Event) error {
 	switch e := event.Data().(type) {
 	case *FlowStarted:
 		return e.Apply(v)

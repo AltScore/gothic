@@ -7,7 +7,7 @@ import (
 )
 
 type Snapshot interface {
-	Apply(event.IEvent) error
+	Apply(event.Event) error
 	SetVersion(int)
 }
 
@@ -15,7 +15,7 @@ type AggregateBase[SS Snapshot] struct {
 	type_      string
 	id         string
 	version    int
-	events     []event.IEvent
+	events     []event.Event
 	nextToSave int
 	snapshot   SS
 }
@@ -25,7 +25,7 @@ type Option[SS Snapshot] func(*AggregateBase[SS])
 func NewAgg[SS Snapshot](
 	id string,
 	type_ string,
-	events []event.IEvent,
+	events []event.Event,
 	opts ...Option[SS],
 ) AggregateBase[SS] {
 	a := AggregateBase[SS]{
@@ -73,7 +73,7 @@ func (a *AggregateBase[SS]) SetId(id string) {
 
 // Apply process an already existent event to update the current Snapshot
 // En error is returned in case the event is incorrect for this Snapshot
-func (a *AggregateBase[SS]) Apply(e event.IEvent) error {
+func (a *AggregateBase[SS]) Apply(e event.Event) error {
 	if err := a.verifyEventCanBeAppliedToThis(e); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (a *AggregateBase[SS]) Apply(e event.IEvent) error {
 	return nil
 }
 
-func (a *AggregateBase[SS]) verifyEventCanBeAppliedToThis(e event.IEvent) error {
+func (a *AggregateBase[SS]) verifyEventCanBeAppliedToThis(e event.Event) error {
 	id, name, version := e.Aggregate()
 
 	if version != a.version+1 {
@@ -106,7 +106,7 @@ func (a *AggregateBase[SS]) verifyEventCanBeAppliedToThis(e event.IEvent) error 
 }
 
 // Raise process a new event to update the current Snapshot and append it to the past events
-func (a *AggregateBase[SS]) Raise(e event.IEvent) error {
+func (a *AggregateBase[SS]) Raise(e event.Event) error {
 	if err := a.Apply(e); err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (a *AggregateBase[SS]) NewMetadata(eventType string) Metadata {
 	)
 }
 
-func (a *AggregateBase[SS]) GetNewEvents() []event.IEvent {
+func (a *AggregateBase[SS]) GetNewEvents() []event.Event {
 	return a.events[a.nextToSave:]
 }
 
