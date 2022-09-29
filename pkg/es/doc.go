@@ -22,7 +22,7 @@ Example:
 Your events should extend the Event struct:
 
 	type flowStarted struct {
-		es.Metadata[ID]
+		es.Metadata
 		ClientID      ClientID
 		TransactionID string
 		TotalAmount   Money

@@ -1,14 +1,13 @@
 package loans
 
-import (
-	"github.com/AltScore/gothic/pkg/es"
+const (
+	LoanFlowStarted    = "loan.flow.started"
+	EmailConfirmedType = "loan.email_confirmed"
 )
 
 type ClientID string
 type Money float64
 type Percent float64
-
-type Event = es.Event[ID, LoanView]
 
 type StartFlowCmd struct {
 	ClientID      ClientID
@@ -17,14 +16,12 @@ type StartFlowCmd struct {
 }
 
 type FlowStarted struct {
-	es.Metadata[ID]
 	ClientID      ClientID
 	TransactionID string
 	TotalAmount   Money
 }
 
 func (f FlowStarted) Apply(state *LoanView) error {
-	state.ID = f.EntityID()
 	state.ClientID = f.ClientID
 	state.TransactionID = f.TransactionID
 	state.TotalAmount = f.TotalAmount
@@ -33,8 +30,6 @@ func (f FlowStarted) Apply(state *LoanView) error {
 }
 
 type TermsAndConditionsAccepted struct {
-	es.Metadata[ID]
-
 	Term             int
 	DeferredPct      Percent
 	AcceptConditions bool
@@ -48,15 +43,10 @@ func (t TermsAndConditionsAccepted) Apply(snapshot *LoanView) error {
 }
 
 type EmailConfirmed struct {
-	es.Metadata[ID]
 }
 
 func (e EmailConfirmed) Apply(snapshot *LoanView) error {
 	snapshot.IsEmailConfirmed = true
 	snapshot.State = Confirmed
 	return nil
-}
-
-type PhoneConfirmed struct {
-	es.Metadata[ID]
 }

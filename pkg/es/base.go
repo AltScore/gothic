@@ -4,20 +4,20 @@ import (
 	"time"
 )
 
-type Metadata[ID EntityID] struct {
+type Metadata struct {
 	entityType string
-	entityID   ID
+	entityID   string
 	type_      string
 	version    int
 	datetime   time.Time
 }
 
-func NewMetadata[ID EntityID](
+func NewMetadata(
 	entityType string,
-	entityID ID,
+	entityID string,
 	type_ string,
-	version int) Metadata[ID] {
-	return Metadata[ID]{
+	version int) Metadata {
+	return Metadata{
 		entityType: entityType,
 		entityID:   entityID,
 		type_:      type_,
@@ -26,22 +26,22 @@ func NewMetadata[ID EntityID](
 	}
 }
 
-func (b Metadata[ID]) EntityType() string {
-	return b.entityType
+func (m *Metadata) EntityType() string {
+	return m.entityType
 }
 
-func (b Metadata[ID]) EntityID() ID {
-	return b.entityID
+func (m *Metadata) EntityID() string {
+	return m.entityID
 }
 
-func (b Metadata[ID]) Type() string {
-	return b.type_
+func (m *Metadata) Type() string {
+	return m.type_
 }
 
-func (b Metadata[ID]) Version() int {
-	return b.version
+func (m *Metadata) Version() int {
+	return m.version
 }
 
-func (b Metadata[ID]) Datetime() time.Time {
-	return b.datetime
+func (m *Metadata) Datetime() time.Time {
+	return m.datetime
 }

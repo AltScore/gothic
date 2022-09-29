@@ -1,5 +1,9 @@
 package loans
 
+import (
+	"github.com/AltScore/gothic/pkg/es/event"
+)
+
 type State string
 
 const (
@@ -20,6 +24,18 @@ type LoanView struct {
 	IsEmailConfirmed bool
 }
 
-func (s LoanView) SetVersion(version int) {
-	s.Version = version
+func (v *LoanView) Apply(event event.IEvent) error {
+	switch e := event.Data().(type) {
+	case *FlowStarted:
+		return e.Apply(v)
+	case *TermsAndConditionsAccepted:
+		return e.Apply(v)
+	case *EmailConfirmed:
+		return e.Apply(v)
+	}
+	return nil
+}
+
+func (v *LoanView) SetVersion(version int) {
+	v.Version = version
 }
