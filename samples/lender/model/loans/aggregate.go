@@ -22,21 +22,6 @@ func New() *Aggregate {
 	}
 }
 
-// Reify recreates an aggregate from a list of events stored to its current state.
-func Reify(previousEvents []Event) (*Aggregate, error) {
-	if len(previousEvents) == 0 {
-		return nil, fmt.Errorf("no events to rebuild from")
-	}
-
-	id, name, _ := previousEvents[0].Aggregate()
-
-	a := Aggregate{
-		AggregateBase: es.NewAgg[*LoanView](id, name, previousEvents),
-	}
-
-	return &a, a.Replay()
-}
-
 func (a *Aggregate) State() State {
 	return a.Snapshot().State
 }

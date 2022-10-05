@@ -11,6 +11,15 @@ type Snapshot interface {
 	SetVersion(int)
 }
 
+type Aggregate[SS Snapshot] interface {
+	ID() string
+	Type() string
+	Version() int
+	Snapshot() SS
+	Apply(e event.Event) error
+	Replay() error
+}
+
 type AggregateBase[SS Snapshot] struct {
 	type_      string
 	id         string
@@ -42,6 +51,22 @@ func NewAgg[SS Snapshot](
 	return a
 }
 
+// Reify recreates an aggregate from a list of events stored to its current state.
+func Reify[Agg Aggregate[SS], SS Snapshot](previousEvents []event.Event, factory func(AggregateBase[SS]) Agg, opts ...Option[SS]) (Agg, error) {
+	var aggregate Agg
+	if len(previousEvents) == 0 {
+		return aggregate, fmt.Errorf("no events to rebuild from")
+	}
+
+	id, name, _ := previousEvents[0].Aggregate()
+
+	base := NewAgg[SS](id, name, previousEvents, opts...)
+
+	aggregate = factory(base)
+
+	return aggregate, aggregate.Replay()
+}
+
 func (a *AggregateBase[SS]) ID() string {
 	return a.id
 }
@@ -59,8 +84,12 @@ func (a *AggregateBase[SS]) Snapshot() SS {
 }
 
 func (a *AggregateBase[SS]) Replay() error {
+	if a.version > 0 {
+		return nil
+	}
+
 	for _, e := range a.events {
-		if err := a.snapshot.Apply(e); err != nil {
+		if err := a.Apply(e); err != nil {
 			return err
 		}
 	}
