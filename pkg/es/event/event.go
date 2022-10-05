@@ -95,6 +95,10 @@ func (e Event) Aggregate() (id, name string, version int) {
 	return e.m.AggregateID, e.m.AggregateName, e.m.AggregateVersion
 }
 
+func (e Event) Version() int {
+	return e.m.AggregateVersion
+}
+
 func WithID(id ID) Option {
 	return func(m *Metadata) {
 		m.ID = id
