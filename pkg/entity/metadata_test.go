@@ -52,6 +52,7 @@ func TestMetadata_Clone(t *testing.T) {
 			want: Metadata{
 				CreatedAt: now,
 				UpdatedAt: now,
+				Version:   1,
 			},
 		},
 		{
@@ -61,6 +62,7 @@ func TestMetadata_Clone(t *testing.T) {
 			want: Metadata{
 				CreatedAt: now,
 				UpdatedAt: now,
+				Version:   1,
 			},
 		},
 		{
@@ -70,6 +72,17 @@ func TestMetadata_Clone(t *testing.T) {
 			want: Metadata{
 				CreatedAt: otherTime,
 				UpdatedAt: now,
+				Version:   1,
+			},
+		},
+		{
+			name: "increase version",
+			m:    NewAt(otherTime).Clone(now).Clone(now),
+			args: now,
+			want: Metadata{
+				CreatedAt: otherTime,
+				UpdatedAt: now,
+				Version:   3, // 2 from the previous clones, 1 from this clone
 			},
 		},
 	}

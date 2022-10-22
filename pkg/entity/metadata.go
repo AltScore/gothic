@@ -11,6 +11,7 @@ type Metadata struct {
 	ID        ids.ID    `json:"id" bson:"_id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+	Version   int       `json:"version"`
 }
 
 func New() Metadata {
@@ -38,6 +39,7 @@ func (e Metadata) Clone(now time.Time) Metadata {
 		ID:        e.ID.SelfOrNew(),
 		CreatedAt: e.createdAtOrNow(now),
 		UpdatedAt: now,
+		Version:   e.Version + 1,
 	}
 }
 
