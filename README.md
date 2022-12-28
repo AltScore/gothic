@@ -3,8 +3,14 @@
 
 # Gothic A GO chassis framework to easy build microservices
 
+To install
 
-# Handle concerns
+```bash
+go get github.com/AltScore/gothic
+```
+
+
+# Handled concerns
 
 ## HTTP based Controller support
 
