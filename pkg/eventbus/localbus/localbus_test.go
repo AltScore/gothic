@@ -1,6 +1,7 @@
 package localbus
 
 import (
+	"context"
 	"fmt"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/ids"
@@ -89,7 +90,7 @@ func TestLocalBus_calls_callback_when_event_requires_acknowledge(t *testing.T) {
 
 func givenASubscriptionOn(name string, bus eventbus.EventBus) chan ids.ID {
 	called := make(chan ids.ID, 1) // Need a buffered channel to avoid blocking
-	_ = bus.Subscribe(name, func(event eventbus.Event) error {
+	_ = bus.Subscribe(name, func(_ context.Context, event eventbus.Event) error {
 		fmt.Printf("Received event: %v/%v\n", event.Name(), event.ID())
 		called <- event.ID()
 		return nil

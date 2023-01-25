@@ -34,3 +34,9 @@ func WithWait() Option {
 		e.ShouldWait = true
 	}
 }
+
+func WithContext(ctx context.Context) Option {
+	return func(e *EventEnvelope) {
+		e.Ctx = ctx
+	}
+}

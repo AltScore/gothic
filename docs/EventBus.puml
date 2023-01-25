@@ -1,0 +1,40 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+package GooglePubSub {
+    component Topic
+    component BusSubscription
+    Topic --> BusSubscription
+}
+
+package uService {
+    package Bus {
+        component PubSubPublisher
+
+        interface "Publisher" as PSPublisher
+
+        PSPublisher .. PubSubPublisher
+
+        Topic <----- PubSubPublisher
+
+        component LocalBus
+
+        interface "Publisher" as LocalPublisher
+        LocalPublisher .. LocalBus
+
+        component PubSubSubscriptionAdapter
+
+        BusSubscription --> PubSubSubscriptionAdapter
+        PubSubSubscriptionAdapter --> LocalPublisher
+    }
+
+   component EventGenerator
+   component PersistentEventGenerator
+   component EventConsumer
+
+   PersistentEventGenerator --> PSPublisher
+   EventGenerator ---> LocalPublisher
+   LocalBus --> EventConsumer
+}
+
+@enduml

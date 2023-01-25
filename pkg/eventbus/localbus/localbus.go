@@ -1,6 +1,7 @@
 package localbus
 
 import (
+	"context"
 	"errors"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
@@ -28,6 +29,7 @@ type localBus struct {
 	eventCh   chan *eventbus.EventEnvelope
 	running   atomic.Bool
 	size      int
+	ctx       context.Context
 }
 
 // NewLocalBus creates a new localBus instance and configures it with the given options.
@@ -52,6 +54,10 @@ func (b *localBus) applyOptions(options []Option) {
 func (b *localBus) Start() error {
 	if !b.running.CAS(false, true) {
 		return ErrBusAlreadyRunning
+	}
+
+	if b.ctx == nil {
+		b.ctx = context.Background()
 	}
 
 	if b.logger == nil {
@@ -87,6 +93,7 @@ func (b *localBus) Publish(event eventbus.Event, options ...eventbus.Option) err
 
 	envelope := &eventbus.EventEnvelope{
 		Event: event,
+		Ctx:   b.ctx,
 	}
 
 	envelope.ProcessOptions(options)
@@ -116,30 +123,45 @@ func (b *localBus) Subscribe(eventName eventbus.EventName, handler eventbus.Even
 
 func (b *localBus) processEvents() {
 	b.logger.Info("Starting event bus")
-	for envelope := range b.eventCh {
-		b.logger.Debug(
-			"Processing event",
-			zap.String("name", envelope.Event.Name()),
-			zap.String("id", envelope.Event.ID().String()),
-		)
-		listeners := b.listeners.getHandlers(envelope.Event.Name())
-		isCallCallbackPending := true
-		for _, listener := range listeners {
-			if err := listener(envelope.Event); isCallCallbackPending && err != nil {
-				// First callback error is the one that will be returned
-				// TODO: Should all errors be returned? they can be aggregated into a single error
-				if envelope.Callback != nil {
-					envelope.Callback(envelope.Event, envelope.Err)
-				}
-				isCallCallbackPending = false
+	for {
+		select {
+		case <-b.ctx.Done():
+			b.logger.Info("Stopping event bus due to context done")
+			return
+
+		case envelope, ok := <-b.eventCh:
+			if !ok {
+				b.logger.Info("Stopping event bus due to channel closed")
+				return
 			}
-
+			b.processEvent(envelope)
 		}
+	}
+}
 
-		if isCallCallbackPending && envelope.Callback != nil {
-			// All callbacks run successfully
-			envelope.Callback(envelope.Event, nil)
+func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
+	b.logger.Debug(
+		"Processing event",
+		zap.String("name", envelope.Event.Name()),
+		zap.String("id", envelope.Event.ID().String()),
+	)
+	listeners := b.listeners.getHandlers(envelope.Event.Name())
+	isCallCallbackPending := true
+
+	for _, listener := range listeners {
+		if err := listener(envelope.Ctx, envelope.Event); isCallCallbackPending && err != nil {
+			// First callback error is the one that will be returned
+			// TODO: Should all errors be returned? they can be aggregated into a single error
+			if envelope.Callback != nil {
+				envelope.Callback(envelope.Event, envelope.Err)
+			}
+			isCallCallbackPending = false
 		}
+	}
+
+	if isCallCallbackPending && envelope.Callback != nil {
+		// All callbacks run successfully
+		envelope.Callback(envelope.Event, nil)
 	}
 }
 
@@ -155,5 +177,11 @@ func WithBufferSize(size int) Option {
 func WithLogger(logger logger.Logger) Option {
 	return func(bus *localBus) {
 		bus.logger = logger
+	}
+}
+
+func WithContext(ctx context.Context) Option {
+	return func(bus *localBus) {
+		bus.ctx = ctx
 	}
 }
