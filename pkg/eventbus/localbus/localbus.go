@@ -52,7 +52,7 @@ func (b *localBus) applyOptions(options []Option) {
 // Start starts the localBus event processing loop.
 // It is safe to call Start multiple times, but only the first call will start the event processing loop.
 func (b *localBus) Start() error {
-	if !b.running.CAS(false, true) {
+	if !b.running.CompareAndSwap(false, true) {
 		return ErrBusAlreadyRunning
 	}
 
