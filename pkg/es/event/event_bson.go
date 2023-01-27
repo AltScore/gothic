@@ -35,7 +35,7 @@ func From(event Event) *entry {
 	id, name, version := event.Aggregate()
 
 	return &entry{
-		ID:               event.ID(),
+		ID:               event.ID().String(),
 		Name:             event.Name(),
 		Time:             event.Time(),
 		TimeNano:         event.Time().UnixNano(),
@@ -48,7 +48,7 @@ func From(event Event) *entry {
 
 func (e *entry) Metadata() *Metadata {
 	return &Metadata{
-		ID:               e.ID,
+		ID:               ID(e.ID),
 		Name:             e.Name,
 		Time:             time.Unix(e.Time.Unix(), e.TimeNano),
 		AggregateName:    e.AggregateName,

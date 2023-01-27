@@ -3,6 +3,7 @@ package localbus
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
 	"go.uber.org/atomic"
@@ -74,7 +75,7 @@ func (b *localBus) Start() error {
 // It is safe to call Stop multiple times, but only the first call will stop the event processing loop.
 // After stopping the event processing loop, the localBus can be started again.
 func (b *localBus) Stop() error {
-	if !b.running.CAS(true, false) {
+	if !b.running.CompareAndSwap(true, false) {
 		return ErrBusNotRunning
 	}
 
@@ -149,7 +150,7 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 	isCallCallbackPending := true
 
 	for _, listener := range listeners {
-		if err := listener(envelope.Ctx, envelope.Event); isCallCallbackPending && err != nil {
+		if err := b.executeWithRecovery(listener, envelope.Ctx, envelope.Event); isCallCallbackPending && err != nil {
 			// First callback error is the one that will be returned
 			// TODO: Should all errors be returned? they can be aggregated into a single error
 			if envelope.Callback != nil {
@@ -163,6 +164,17 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 		// All callbacks run successfully
 		envelope.Callback(envelope.Event, nil)
 	}
+}
+
+func (b *localBus) executeWithRecovery(listener eventbus.EventHandler, ctx context.Context, event eventbus.Event) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic while executing event handler: %v", r)
+			b.logger.Error("panic while executing event handler", zap.Any("error", r))
+		}
+	}()
+
+	return listener(ctx, event)
 }
 
 // WithBufferSize sets the size of the event buffer.

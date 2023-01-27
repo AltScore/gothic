@@ -1,13 +1,12 @@
 package event
 
 import (
+	"github.com/AltScore/gothic/pkg/ids"
 	"reflect"
 	"time"
-
-	"github.com/google/uuid"
 )
 
-type ID = string
+type ID = ids.ID
 type AggID = string
 
 type Aggregate interface {
@@ -55,7 +54,7 @@ type Option func(*Metadata)
 
 func New(name string, data any, opts ...Option) Event {
 	m := Metadata{
-		ID:   uuid.New().String(),
+		ID:   ids.New(),
 		Name: name,
 		Time: time.Now(),
 	}
@@ -116,6 +115,14 @@ func WithAggregate(a Aggregate) Option {
 		m.AggregateID = a.ID()
 		m.AggregateName = a.Type()
 		m.AggregateVersion = a.Version() + 1
+	}
+}
+
+func WithType(id AggID, typeName string) Option {
+	return func(m *Metadata) {
+		m.AggregateID = id
+		m.AggregateName = typeName
+		m.AggregateVersion = -1
 	}
 }
 
