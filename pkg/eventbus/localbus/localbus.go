@@ -2,22 +2,12 @@ package localbus
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"strings"
-)
-
-var (
-	// ErrEmptyEventName is returned when an empty event name is provided while subscribing.
-	ErrEmptyEventName = errors.New("event name cannot be empty")
-	// ErrBusNotRunning is returned when an operation is performed on a localBus that is not running.
-	ErrBusNotRunning = errors.New("bus is not running")
-	// ErrBusAlreadyRunning is returned when the localBus is already running.
-	ErrBusAlreadyRunning = errors.New("bus is already running")
 )
 
 // Option is a function that configures a localBus
@@ -54,7 +44,7 @@ func (b *localBus) applyOptions(options []Option) {
 // It is safe to call Start multiple times, but only the first call will start the event processing loop.
 func (b *localBus) Start() error {
 	if !b.running.CompareAndSwap(false, true) {
-		return ErrBusAlreadyRunning
+		return eventbus.ErrBusAlreadyRunning
 	}
 
 	if b.ctx == nil {
@@ -76,7 +66,7 @@ func (b *localBus) Start() error {
 // After stopping the event processing loop, the localBus can be started again.
 func (b *localBus) Stop() error {
 	if !b.running.CompareAndSwap(true, false) {
-		return ErrBusNotRunning
+		return eventbus.ErrBusNotRunning
 	}
 
 	close(b.eventCh)
@@ -89,7 +79,7 @@ func (b *localBus) Stop() error {
 // If any of the handlers returns an error, the error will be returned by Publish to the configured callback.
 func (b *localBus) Publish(event eventbus.Event, options ...eventbus.Option) error {
 	if !b.running.Load() {
-		return ErrBusNotRunning
+		return eventbus.ErrBusNotRunning
 	}
 
 	envelope := &eventbus.EventEnvelope{
@@ -116,7 +106,7 @@ func (b *localBus) Publish(event eventbus.Event, options ...eventbus.Option) err
 func (b *localBus) Subscribe(eventName eventbus.EventName, handler eventbus.EventHandler) error {
 	eventNameTrimmed := strings.TrimSpace(eventName)
 	if eventNameTrimmed == "" {
-		return ErrEmptyEventName
+		return eventbus.ErrEmptyEventName
 	}
 	b.listeners.addHandler(eventNameTrimmed, handler)
 	return nil
@@ -141,20 +131,38 @@ func (b *localBus) processEvents() {
 }
 
 func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
-	b.logger.Debug(
-		"Processing event",
-		zap.String("name", envelope.Event.Name()),
-		zap.String("id", envelope.Event.ID().String()),
-	)
-	listeners := b.listeners.getHandlers(envelope.Event.Name())
+	event := envelope.Event
+
+	listeners := b.listeners.getHandlers(event.Name())
+
+	if len(listeners) == 0 {
+		b.logger.Warn(
+			"No listeners found for event",
+			zap.String("name", event.Name()),
+			zap.String("id", event.ID().String()),
+		)
+
+		if envelope.Callback != nil {
+			// Report unhandled event error to caller
+			envelope.Callback(event, eventbus.NewErrUnhandledEvent(event.Name(), event.ID()))
+			return
+		}
+
+	} else {
+		b.logger.Debug(
+			"Processing event",
+			zap.String("name", event.Name()),
+			zap.String("id", event.ID().String()),
+		)
+	}
 	isCallCallbackPending := true
 
 	for _, listener := range listeners {
-		if err := b.executeWithRecovery(listener, envelope.Ctx, envelope.Event); isCallCallbackPending && err != nil {
+		if err := b.executeWithRecovery(listener, envelope.Ctx, event); isCallCallbackPending && err != nil {
 			// First callback error is the one that will be returned
 			// TODO: Should all errors be returned? they can be aggregated into a single error
 			if envelope.Callback != nil {
-				envelope.Callback(envelope.Event, envelope.Err)
+				envelope.Callback(event, envelope.Err)
 			}
 			isCallCallbackPending = false
 		}
@@ -162,7 +170,7 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 
 	if isCallCallbackPending && envelope.Callback != nil {
 		// All callbacks run successfully
-		envelope.Callback(envelope.Event, nil)
+		envelope.Callback(event, nil)
 	}
 }
 
