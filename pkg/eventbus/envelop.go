@@ -28,6 +28,14 @@ func WithAck(callback Callback) Option {
 	}
 }
 
+func WithAckChan(ch chan<- error) Option {
+	return func(e *EventEnvelope) {
+		e.Callback = func(_ Event, err error) {
+			ch <- err
+		}
+	}
+}
+
 // WithWait sets the flag that indicates that the event should be processed synchronously.
 func WithWait() Option {
 	return func(e *EventEnvelope) {

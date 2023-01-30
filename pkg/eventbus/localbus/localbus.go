@@ -16,7 +16,7 @@ type Option func(bus *localBus)
 // localBus is an in-memory event bus implementation of EventBus interface.
 type localBus struct {
 	logger    logger.Logger
-	listeners handlersMap
+	listeners consumersMap
 	eventCh   chan *eventbus.EventEnvelope
 	running   atomic.Bool
 	size      int
@@ -26,7 +26,7 @@ type localBus struct {
 // NewLocalBus creates a new localBus instance and configures it with the given options.
 func NewLocalBus(options ...Option) eventbus.EventBus {
 	bus := &localBus{
-		listeners: handlersMap{},
+		listeners: consumersMap{},
 	}
 
 	bus.applyOptions(options)
@@ -74,9 +74,9 @@ func (b *localBus) Stop() error {
 }
 
 // Publish publishes an event to the localBus.
-// All the registered handlers for the event will be called in a separate goroutine.
+// All the registered consumers for the event will be called in a separate goroutine.
 // Publish is non-blocking and returns immediately.
-// If any of the handlers returns an error, the error will be returned by Publish to the configured callback.
+// If any of the consumers returns an error, the error will be returned by Publish to the configured callback.
 func (b *localBus) Publish(event eventbus.Event, options ...eventbus.Option) error {
 	if !b.running.Load() {
 		return eventbus.ErrBusNotRunning
@@ -98,17 +98,17 @@ func (b *localBus) Publish(event eventbus.Event, options ...eventbus.Option) err
 	return nil
 }
 
-// Subscribe subscribes a handler to an event.
-// The handler will be called when an event with the given name is published.
-// The handler will be called in a separate goroutine.
-// If the handler returns an error, the error will be returned by Publish to the configured callback.
-// All the handlers for an event will be called in the order they were registered.
-func (b *localBus) Subscribe(eventName eventbus.EventName, handler eventbus.EventHandler) error {
+// Subscribe subscribes a consumer to an event.
+// The consumer will be called when an event with the given name is published.
+// The consumer will be called in a separate goroutine.
+// If the consumer returns an error, the error will be returned by Publish to the configured callback.
+// All the consumers for an event will be called in the order they were registered.
+func (b *localBus) Subscribe(eventName eventbus.EventName, consumer eventbus.EventConsumer) error {
 	eventNameTrimmed := strings.TrimSpace(eventName)
 	if eventNameTrimmed == "" {
 		return eventbus.ErrEmptyEventName
 	}
-	b.listeners.addHandler(eventNameTrimmed, handler)
+	b.listeners.addConsumer(eventNameTrimmed, consumer)
 	return nil
 }
 
@@ -133,7 +133,7 @@ func (b *localBus) processEvents() {
 func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 	event := envelope.Event
 
-	listeners := b.listeners.getHandlers(event.Name())
+	listeners := b.listeners.getConsumers(event.Name())
 
 	if len(listeners) == 0 {
 		b.logger.Warn(
@@ -174,11 +174,11 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 	}
 }
 
-func (b *localBus) executeWithRecovery(listener eventbus.EventHandler, ctx context.Context, event eventbus.Event) (err error) {
+func (b *localBus) executeWithRecovery(listener eventbus.EventConsumer, ctx context.Context, event eventbus.Event) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("panic while executing event handler: %v", r)
-			b.logger.Error("panic while executing event handler", zap.Any("error", r))
+			err = fmt.Errorf("panic while executing event consumer: %v", r)
+			b.logger.Error("panic while executing event consumer", zap.Any("error", r))
 		}
 	}()
 
