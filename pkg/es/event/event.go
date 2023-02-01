@@ -90,8 +90,12 @@ func (e Event) Time() time.Time {
 	return e.m.Time
 }
 
-func (e Event) Aggregate() (id, name string, version int) {
+func (e Event) Aggregate() (AggID, string, int) {
 	return e.m.AggregateID, e.m.AggregateName, e.m.AggregateVersion
+}
+
+func (e Event) AggregateID() AggID {
+	return e.m.AggregateID
 }
 
 func (e Event) Version() int {
@@ -123,6 +127,14 @@ func WithType(id AggID, typeName string) Option {
 		m.AggregateID = id
 		m.AggregateName = typeName
 		m.AggregateVersion = -1
+	}
+}
+
+func WithTypeAndVersion(id AggID, typeName string, version int) Option {
+	return func(m *Metadata) {
+		m.AggregateID = id
+		m.AggregateName = typeName
+		m.AggregateVersion = version
 	}
 }
 
