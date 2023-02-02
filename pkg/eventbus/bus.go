@@ -3,14 +3,14 @@ package eventbus
 import (
 	"context"
 	"fmt"
-	"github.com/AltScore/gothic/pkg/ids"
+	"github.com/google/uuid"
 )
 
 type EventName = string
 
 type Event interface {
 	// ID returns the ID of the event.
-	ID() ids.ID
+	ID() uuid.UUID
 	// Name returns the name of the event.
 	Name() EventName
 }

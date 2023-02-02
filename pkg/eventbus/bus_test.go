@@ -2,17 +2,17 @@ package eventbus
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/ids"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 type testTypedEvent struct {
-	id   ids.ID
+	id   uuid.UUID
 	name string
 }
 
-func (t *testTypedEvent) ID() ids.ID {
+func (t *testTypedEvent) ID() uuid.UUID {
 	return t.id
 }
 

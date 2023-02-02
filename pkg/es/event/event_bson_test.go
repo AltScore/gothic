@@ -93,8 +93,8 @@ func Test_EmptyEvent_can_be_unmarshalled(t *testing.T) {
 	codec.Register[emptyEventData](EmptyEventName)
 
 	// GIVEN a mashalled empty event
-	event := New(EmptyEventName, emptyEventData{}, WithID("sample-id"))
-	bsonBytes, err := marshal(event)
+	ev := New(EmptyEventName, emptyEventData{}, WithID("sample-id"))
+	bsonBytes, err := marshal(ev)
 	require.NoError(t, err)
 
 	// WHEN we unmarshal it
@@ -106,7 +106,7 @@ func Test_EmptyEvent_can_be_unmarshalled(t *testing.T) {
 	// THEN we expect the event to be correct
 	id, name, version := actual.Aggregate()
 
-	require.Equal(t, "sample-id", actual.ID())
+	require.Equal(t, "sample-id", actual.ID().String())
 	require.Equal(t, EmptyEventName, actual.Name())
 	require.Equal(t, 0, version)
 	require.Equal(t, "", name)
@@ -116,7 +116,7 @@ func Test_EmptyEvent_can_be_unmarshalled(t *testing.T) {
 func Test_EventWithData_can_be_unmarshalled(t *testing.T) {
 	codec.Register[eventWithData](EventWithDataName)
 
-	// GIVEN a mashalled empty event
+	// GIVEN a marshalled empty event
 	data := eventWithData{
 		Str: "a nice value",
 		Num: 42,
@@ -140,7 +140,7 @@ func Test_EventWithData_can_be_unmarshalled(t *testing.T) {
 
 	require.True(t, ok)
 
-	require.Equal(t, "another-id", actual.ID())
+	require.Equal(t, "another-id", actual.ID().String())
 	require.Equal(t, EventWithDataName, actual.Name())
 	require.Equal(t, 0, version)
 	require.Equal(t, "", name)
@@ -177,14 +177,14 @@ func Test_Can_marshall_list_of_events(t *testing.T) {
 	actualEvents := unmarshalAll(bsonBytes)
 
 	require.Len(t, actualEvents, 3)
-	require.Equal(t, "sample-id", actualEvents[0].ID())
+	require.Equal(t, "sample-id", actualEvents[0].ID().String())
 	require.Equal(t, EmptyEventName, actualEvents[0].Name())
 
-	require.Equal(t, "another-id", actualEvents[1].ID())
+	require.Equal(t, "another-id", actualEvents[1].ID().String())
 	require.Equal(t, EventWithDataName, actualEvents[1].Name())
 	require.Equal(t, "a nice value", actualEvents[1].Data().(*eventWithData).Str)
 
-	require.Equal(t, "yet-another-id", actualEvents[2].ID())
+	require.Equal(t, "yet-another-id", actualEvents[2].ID().String())
 	require.Equal(t, EventWithOtherDataName, actualEvents[2].Name())
 	require.Equal(t, 3.14, actualEvents[2].Data().(*eventWithOtherData).Num)
 }
@@ -212,7 +212,7 @@ func TestCan_marshall_and_unmarshall_event_directly(t *testing.T) {
 	require.NoError(t, err)
 
 	// THEN we expect the event to be correct
-	require.Equal(t, "yet-another-id", actual.ID())
+	require.Equal(t, "yet-another-id", actual.ID().String())
 	require.Equal(t, EventWithOtherDataName, actual.Name())
 }
 

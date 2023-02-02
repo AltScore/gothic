@@ -6,9 +6,10 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/AltScore/gothic/pkg/es/event"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/test/pubsubtest"
+	"github.com/modernice/goes/codec"
+	"github.com/modernice/goes/event"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -20,6 +21,12 @@ import (
 	"time"
 )
 
+const (
+	// Increase this to debug
+	testDeadlineSeconds = 120
+	testEventName       = "test-event"
+)
+
 type PubSubTestSuite struct {
 	suite.Suite
 
@@ -27,6 +34,7 @@ type PubSubTestSuite struct {
 	topic string
 
 	pubsubtest.LocalEmulator
+	registry *codec.Registry
 }
 
 // In order for 'go test' to run this suite, we need to create
@@ -46,10 +54,15 @@ func (s *PubSubTestSuite) TearDownSuite() {
 func (s *PubSubTestSuite) SetupTest() {
 	s.run = rand.Int()
 	s.topic = "test-topic." + strconv.Itoa(s.run)
+
+	s.registry = codec.New(codec.Debug(true))
+
+	// PublisherAdapter requires a codec that can encode the event
+	codec.Register[string](s.registry, testEventName)
 }
 
 func (s *PubSubTestSuite) Test_List_topics() {
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), testDeadlineSeconds*time.Second)
 	defer cancelCtx()
 
 	it := s.Client().Topics(ctx)
@@ -72,7 +85,7 @@ func (s *PubSubTestSuite) Test_List_topics() {
 }
 
 func (s *PubSubTestSuite) Test_Given_a_pubsub_publisher_When_publish_Then_message_was_published() {
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), testDeadlineSeconds*time.Second)
 	defer cancelCtx()
 
 	// GIVEN a topic and a subscription
@@ -84,9 +97,9 @@ func (s *PubSubTestSuite) Test_Given_a_pubsub_publisher_When_publish_Then_messag
 	publisher := s.givenAPublisher(topic, ctx)
 
 	// WHEN we send a message to the topic
-	ev := event.New("test-event", "sample data")
+	ev := event.New(testEventName, "sample data")
 
-	err := publisher.Publish(ev)
+	err := publisher.Publish(ev.Any())
 
 	// THEN no error should be produced
 	s.Require().NoError(err)
@@ -121,12 +134,12 @@ func (s *PubSubTestSuite) givenAPublisher(topic *pubsub.Topic, ctx context.Conte
 		TopicName: topic.ID(),
 	}
 
-	publisher := NewPublisher(ctx, s.Client(), zap.NewExample(), config)
+	publisher := NewPublisher(ctx, s.Client(), s.registry, zap.NewExample(), config)
 	return publisher
 }
 
 func (s *PubSubTestSuite) Test_can_send_and_receive() {
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), testDeadlineSeconds*time.Second)
 	defer cancelCtx()
 
 	// GIVEN a topic and a subscription
@@ -139,9 +152,10 @@ func (s *PubSubTestSuite) Test_can_send_and_receive() {
 	options := PullAdapterConfig{
 		ProjectID:        s.ProjectID(),
 		SubscriptionName: sub.ID(),
+		Debug:            true,
 	}
 
-	pullAdapter := NewPullAdapter(s.Client(), localBus, zap.NewExample(), options)
+	pullAdapter := NewPullAdapter(s.Client(), localBus, s.registry, zap.NewExample(), options)
 
 	localBus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
@@ -155,7 +169,7 @@ func (s *PubSubTestSuite) Test_can_send_and_receive() {
 	publisher := s.givenAPublisher(topic, ctx)
 	ev := event.New("test-event", "sample data")
 
-	err := publisher.Publish(ev)
+	err := publisher.Publish(ev.Any())
 	fmt.Printf("Published message %s\n", ev.ID())
 
 	// THEN no error should be produced

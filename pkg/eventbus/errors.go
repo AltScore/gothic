@@ -2,7 +2,7 @@ package eventbus
 
 import (
 	"errors"
-	"github.com/AltScore/gothic/pkg/ids"
+	"github.com/google/uuid"
 )
 
 var (
@@ -16,10 +16,10 @@ var (
 
 type ErrUnhandledEvent struct {
 	EventName string
-	EventId   ids.ID
+	EventId   uuid.UUID
 }
 
-func NewErrUnhandledEvent(eventName string, eventId ids.ID) *ErrUnhandledEvent {
+func NewErrUnhandledEvent(eventName string, eventId uuid.UUID) *ErrUnhandledEvent {
 	return &ErrUnhandledEvent{EventName: eventName, EventId: eventId}
 }
 

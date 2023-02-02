@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 	"github.com/AltScore/gothic/pkg/eventbus"
-	"github.com/AltScore/gothic/pkg/ids"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
 type testEvent struct {
-	id   ids.ID
+	id   uuid.UUID
 	name string
 }
 
-func (t *testEvent) ID() ids.ID {
+func (t *testEvent) ID() uuid.UUID {
 	return t.id
 }
 
@@ -37,7 +37,7 @@ func TestLocalBus_calls_listener(t *testing.T) {
 
 	called := givenASubscriptionOn("test", bus)
 
-	whenPublishEventOnWithId(t, bus, "test", "ev-1111")
+	whenPublishEventOnWithId(t, bus, "test", uuid.New())
 
 	thenHandlerShouldBeCalled(t, called)
 }
@@ -49,7 +49,7 @@ func TestLocalBus_does_not_call_listener_for_different_event(t *testing.T) {
 
 	called := givenASubscriptionOn("test", bus)
 
-	whenPublishEventOnWithId(t, bus, "other", "ev-3658")
+	whenPublishEventOnWithId(t, bus, "other", uuid.New())
 
 	thenHandlerShouldNotBeCalled(t, called)
 }
@@ -62,7 +62,7 @@ func TestLocalBus_calls_several_listeners(t *testing.T) {
 	called := givenASubscriptionOn("test", bus)
 	called2 := givenASubscriptionOn("test", bus)
 
-	whenPublishEventOnWithId(t, bus, "test", "ev-4687")
+	whenPublishEventOnWithId(t, bus, "test", uuid.New())
 
 	// They are called in order
 	thenHandlerShouldBeCalled(t, called)
@@ -83,7 +83,7 @@ func TestLocalBus_calls_callback_when_event_requires_acknowledge(t *testing.T) {
 		callbackCalled <- fmt.Sprintf("%v/%v result: %v", event.Name(), event.ID(), err)
 	}
 
-	whenPublishEventOnWithId(t, bus, "test", "ev-1111", callback)
+	whenPublishEventOnWithId(t, bus, "test", uuid.New(), callback)
 
 	thenHandlerShouldBeCalled(t, callbackCalled)
 }
@@ -101,14 +101,15 @@ func TestLocalBus_reports_unhandled_event_error(t *testing.T) {
 		callbackCalled <- err
 	}
 
-	whenPublishEventOnWithId(t, bus, "other", "ev-1111", callback)
+	u := uuid.New()
+	whenPublishEventOnWithId(t, bus, "other", u, callback)
 
 	// THEN the callback is called with an error
-	thenHandlerShouldBeCalled[error](t, callbackCalled, eventbus.NewErrUnhandledEvent("other", "ev-1111"))
+	thenHandlerShouldBeCalled[error](t, callbackCalled, eventbus.NewErrUnhandledEvent("other", u))
 }
 
-func givenASubscriptionOn(name string, bus eventbus.EventBus) chan ids.ID {
-	called := make(chan ids.ID, 1) // Need a buffered channel to avoid blocking
+func givenASubscriptionOn(name string, bus eventbus.EventBus) chan uuid.UUID {
+	called := make(chan uuid.UUID, 1) // Need a buffered channel to avoid blocking
 	_ = bus.Subscribe(name, func(_ context.Context, event eventbus.Event) error {
 		fmt.Printf("Received event: %v/%v\n", event.Name(), event.ID())
 		called <- event.ID()
@@ -117,7 +118,7 @@ func givenASubscriptionOn(name string, bus eventbus.EventBus) chan ids.ID {
 	return called
 }
 
-func whenPublishEventOnWithId(t *testing.T, bus eventbus.EventBus, name string, id ids.ID, callbacks ...eventbus.Callback) {
+func whenPublishEventOnWithId(t *testing.T, bus eventbus.EventBus, name string, id uuid.UUID, callbacks ...eventbus.Callback) {
 	options := make([]eventbus.Option, 0)
 	for _, callback := range callbacks {
 		options = append(options, eventbus.WithAck(callback))

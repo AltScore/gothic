@@ -1,13 +1,15 @@
 package pubsub
 
 import (
-	"bitbucket.org/altscore/altscore-credits-api.git/pkg/app/errors"
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/AltScore/gothic/pkg/es/event"
+	"github.com/AltScore/gothic/pkg/errors"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
+	"github.com/google/uuid"
+	"github.com/modernice/goes/codec"
+	"github.com/modernice/goes/event"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -16,6 +18,7 @@ import (
 type PullAdapterConfig struct {
 	ProjectID        string `yaml:"project_id"`
 	SubscriptionName string `yaml:"subscription_name"`
+	Debug            bool
 }
 
 // PullAdapter pulls events from a PubSub topic and publishes them to a local event bus
@@ -24,14 +27,20 @@ type PullAdapter struct {
 	logger    logger.Logger
 	config    PullAdapterConfig
 	publisher eventbus.Publisher
+	encoding  codec.Encoding
 	sub       *pubsub.Subscription
 }
 
 // NewPullAdapter creates a new PullAdapter that pulls events from a PubSub topic and publishes them to another publisher
+//
+// The provided enconder should have all the event types registered before processing events.
+//
 // To authenticate with PubSub, the GOOGLE_APPLICATION_CREDENTIALS environment variable must be set
 // See https://cloud.google.com/docs/authentication/getting-started for more information
-func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, log logger.Logger, config PullAdapterConfig) *PullAdapter {
+func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, encoder codec.Encoding, log logger.Logger, config PullAdapterConfig) *PullAdapter {
 	errors.EnsureNotNil(client, "client")
+	errors.EnsureNotNil(encoder, "encoder")
+	errors.EnsureNotNil(encoder, "encoder")
 
 	log.Info("Connected to PubSub", zap.String("project_id", config.ProjectID), zap.String("subscription", config.SubscriptionName))
 
@@ -42,6 +51,7 @@ func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, log log
 		logger:    log,
 		config:    config,
 		publisher: publisher,
+		encoding:  encoder,
 		sub:       sub,
 	}
 }
@@ -64,7 +74,9 @@ func (a *PullAdapter) publish(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
-	a.logger.Info("Received event from PubSub", zap.String("event", ev.Name()), zap.Any("id", ev.ID()), zap.Any("agg_id", ev.AggregateID()))
+	aggID, _, _ := ev.Aggregate()
+
+	a.logger.Info("Received event from PubSub", zap.String("event", ev.Name()), zap.Any("id", ev.ID()), zap.Any("agg_id", aggID))
 
 	errCh := make(chan error)
 
@@ -77,9 +89,21 @@ func (a *PullAdapter) publish(ctx context.Context, m *pubsub.Message) error {
 	return <-errCh // Wait for the response to be received
 }
 
-func (a *PullAdapter) unmarshalEvent(msg *pubsub.Message) (*event.Event, error) {
-	evID := msg.Attributes[EventIDMessageAttributeKey]
-	aggID := msg.Attributes[AggregateIDMessageAttributeKey]
+func (a *PullAdapter) unmarshalEvent(msg *pubsub.Message) (event.Event, error) {
+	evIDStr := msg.Attributes[EventIDMessageAttributeKey]
+	evID, err := uuid.Parse(evIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse event ID '%s': %w", evIDStr, err)
+	}
+	evName := msg.Attributes[EventNameMessageAttributeKey]
+	aggIDStr := msg.Attributes[AggregateIDMessageAttributeKey]
+
+	aggID, err := uuid.Parse(aggIDStr)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse aggregate ID '%s': %w", aggIDStr, err)
+	}
+
 	aggName := msg.Attributes[AggregateNameMessageAttributeKey]
 	aggVersionStr := msg.Attributes[AggregateVersionMessageAttributeKey]
 	aggVersion, err := strconv.Atoi(aggVersionStr)
@@ -96,14 +120,21 @@ func (a *PullAdapter) unmarshalEvent(msg *pubsub.Message) (*event.Event, error) 
 
 	eventName := msg.Attributes[EventNameMessageAttributeKey]
 
-	data := map[string]interface{}{}
+	data, err := a.encoding.Unmarshal(msg.Data, evName)
+
+	if err != nil {
+		if a.config.Debug {
+			a.logger.Error("Failed to unmarshal event data", zap.Error(err), zap.String("event", eventName), zap.String("data", string(msg.Data)))
+		}
+		return nil, fmt.Errorf("failed to unmarshal event data: %w", err)
+	}
 
 	ev := event.New(
 		eventName,
 		data,
-		event.WithTypeAndVersion(aggName, aggID, aggVersion),
-		event.WithID(event.ID(evID)),
-		event.WithTime(evTime),
+		event.Aggregate(aggID, aggName, aggVersion),
+		event.ID(evID),
+		event.Time(evTime),
 	)
 
 	return &ev, nil

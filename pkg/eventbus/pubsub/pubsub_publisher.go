@@ -1,13 +1,13 @@
 package pubsub
 
 import (
-	"bitbucket.org/altscore/altscore-credits-api.git/pkg/app/errors"
 	"cloud.google.com/go/pubsub"
 	"context"
-	"encoding/json"
-	"github.com/AltScore/gothic/pkg/es/event"
+	"github.com/AltScore/gothic/pkg/errors"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
+	"github.com/modernice/goes/codec"
+	"github.com/modernice/goes/event"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
@@ -23,9 +23,10 @@ type Publisher struct {
 	ctx    context.Context
 	client *pubsub.Client
 
-	topic  *pubsub.Topic
-	logger logger.Logger
-	config PublisherConfig
+	topic    *pubsub.Topic
+	logger   logger.Logger
+	config   PublisherConfig
+	encoding codec.Encoding
 }
 
 // NewPublisher creates a new Publisher that publishes events to a PubSub topic
@@ -34,8 +35,9 @@ type Publisher struct {
 //
 // To authenticate with PubSub, the GOOGLE_APPLICATION_CREDENTIALS environment variable must be set
 // See https://cloud.google.com/docs/authentication/getting-started for more information
-func NewPublisher(ctx context.Context, client *pubsub.Client, log logger.Logger, config PublisherConfig) *Publisher {
-	errors.EnsureNotNil(client, "client")
+func NewPublisher(ctx context.Context, client *pubsub.Client, encoding codec.Encoding, log logger.Logger, config PublisherConfig) *Publisher {
+	errors.EnsureNotNil(client, "PubSub client")
+	errors.EnsureNotNil(encoding, "Event encoding")
 
 	log.Info("Connected to PubSub", zap.String("project_id", config.ProjectID), zap.String("topic_name", config.TopicName))
 
@@ -43,11 +45,12 @@ func NewPublisher(ctx context.Context, client *pubsub.Client, log logger.Logger,
 	topic.EnableMessageOrdering = true // This is required for the OrderingKey to work. It is critical for Aggregate Event Sourcing
 
 	return &Publisher{
-		ctx:    ctx,
-		client: client,
-		topic:  topic,
-		logger: log,
-		config: config,
+		ctx:      ctx,
+		client:   client,
+		encoding: encoding,
+		topic:    topic,
+		logger:   log,
+		config:   config,
 	}
 }
 
@@ -55,7 +58,7 @@ func NewPublisher(ctx context.Context, client *pubsub.Client, log logger.Logger,
 // Each message is sent in order, if an error is produced, it stops sending and returns the error.
 //
 // The event name can be found in the "type" attribute of the message
-func (g *Publisher) Publish(e event.IEvent, options ...eventbus.Option) error {
+func (g *Publisher) Publish(e event.Event, options ...eventbus.Option) error {
 	envelope := &eventbus.EventEnvelope{
 		Event: e,
 		Ctx:   g.ctx,
@@ -63,7 +66,7 @@ func (g *Publisher) Publish(e event.IEvent, options ...eventbus.Option) error {
 
 	envelope.ProcessOptions(options)
 
-	data, err := json.Marshal(e.Data())
+	data, err := g.encoding.Marshal(e.Data())
 	if err != nil {
 		return err
 	}
@@ -73,12 +76,12 @@ func (g *Publisher) Publish(e event.IEvent, options ...eventbus.Option) error {
 	start := time.Now()
 	result := g.topic.Publish(envelope.Ctx, &pubsub.Message{
 		Data:        data,
-		OrderingKey: aggID,
+		OrderingKey: aggID.String(),
 		Attributes: map[string]string{
 			EventIDMessageAttributeKey:          e.ID().String(),
 			EventNameMessageAttributeKey:        e.Name(),
 			EventTimeMessageAttributeKey:        e.Time().Format(EventTimeFormat),
-			AggregateIDMessageAttributeKey:      aggID,
+			AggregateIDMessageAttributeKey:      aggID.String(),
 			AggregateNameMessageAttributeKey:    aggName,
 			AggregateVersionMessageAttributeKey: strconv.Itoa(aggVersion),
 		},
@@ -92,7 +95,7 @@ func (g *Publisher) Publish(e event.IEvent, options ...eventbus.Option) error {
 
 	if g.config.LogMessage {
 		end := time.Now()
-		g.logger.Info("Message sent", zap.String("type", envelope.Event.Name()), zap.String("aggregateID", aggID), zap.Duration("latency", end.Sub(start)))
+		g.logger.Info("Message sent", zap.String("type", envelope.Event.Name()), zap.Any("aggregateID", aggID), zap.Duration("latency", end.Sub(start)))
 	}
 
 	return nil
