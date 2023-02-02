@@ -33,12 +33,25 @@ func (id ID) SelfOrNew() ID {
 	return New()
 }
 
+func (id ID) AsUUID() uuid.UUID {
+	u, err := uuid.Parse(id.String())
+
+	if err != nil {
+		panic(err)
+	}
+	return u
+}
+
 func ParseId(id string) (ID, error) {
 	if rawId, err := uuid.Parse(id); err == nil {
 		return ID(rawId.String()), nil
 	} else {
 		return Empty(), err
 	}
+}
+
+func FromUUID(uuid uuid.UUID) ID {
+	return ID(uuid.String())
 }
 
 func FromBytes(bytes []byte) (ID, error) {
