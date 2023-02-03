@@ -155,15 +155,14 @@ func (s *PubSubTestSuite) Test_can_send_and_receive() {
 		Debug:            true,
 	}
 
-	pullAdapter := NewPullAdapter(s.Client(), localBus, s.registry, zap.NewExample(), options)
+	_ = NewPullAdapter(s.Client(), localBus, s.registry, zap.NewExample(), options)
 
 	localBus.On("Publish", mock.Anything, mock.Anything).Return(nil)
 
 	// WHEN we send a message to the topic
 	go func() {
 		fmt.Printf("Starting pull adapter\n")
-		err := pullAdapter.Start(ctx)
-		s.Require().NoError(err)
+		localBus.Start(ctx)
 	}()
 
 	publisher := s.givenAPublisher(topic, ctx)
@@ -212,7 +211,16 @@ func (s *PubSubTestSuite) givenTopic(ctx context.Context) *pubsub.Topic {
 type localBusMock struct {
 	mock.Mock
 
-	done chan struct{}
+	done     chan struct{}
+	listener eventbus.LifeCycleListener
+}
+
+func (p *localBusMock) Start(ctx context.Context) {
+	p.listener.OnStart(ctx)
+}
+
+func (p *localBusMock) AddLifecycleListener(listener eventbus.LifeCycleListener) {
+	p.listener = listener
 }
 
 func newLocalBusMock() *localBusMock {

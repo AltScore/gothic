@@ -15,12 +15,13 @@ type Option func(bus *localBus)
 
 // localBus is an in-memory event bus implementation of EventBus interface.
 type localBus struct {
-	logger    logger.Logger
-	listeners consumersMap
-	eventCh   chan *eventbus.EventEnvelope
-	running   atomic.Bool
-	size      int
-	ctx       context.Context
+	logger             logger.Logger
+	listeners          consumersMap
+	eventCh            chan *eventbus.EventEnvelope
+	running            atomic.Bool
+	size               int
+	ctx                context.Context
+	lifeCycleListeners []eventbus.LifeCycleListener
 }
 
 // NewLocalBus creates a new localBus instance and configures it with the given options.
@@ -58,6 +59,8 @@ func (b *localBus) Start() error {
 	b.eventCh = make(chan *eventbus.EventEnvelope, b.size)
 	go b.processEvents()
 
+	b.informStarted()
+
 	return nil
 }
 
@@ -69,8 +72,19 @@ func (b *localBus) Stop() error {
 		return eventbus.ErrBusNotRunning
 	}
 
+	b.informStopping()
+
 	close(b.eventCh)
 	return nil
+}
+
+func (b *localBus) AddLifecycleListener(listener eventbus.LifeCycleListener) {
+	if listener != nil {
+		b.lifeCycleListeners = append(b.lifeCycleListeners, listener)
+		if b.running.Load() {
+			listener.OnStart(b.ctx) // lazy listener is added after the bus was started
+		}
+	}
 }
 
 // Publish publishes an event to the localBus.
@@ -159,6 +173,8 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 
 	for _, listener := range listeners {
 		if err := b.executeWithRecovery(listener, envelope.Ctx, event); isCallCallbackPending && err != nil {
+			b.logger.Debug("Error while processing event", zap.Error(err))
+
 			// First callback error is the one that will be returned
 			// TODO: Should all errors be returned? they can be aggregated into a single error
 			if envelope.Callback != nil {
@@ -183,6 +199,18 @@ func (b *localBus) executeWithRecovery(listener eventbus.EventConsumer, ctx cont
 	}()
 
 	return listener(ctx, event)
+}
+
+func (b *localBus) informStarted() {
+	for _, listener := range b.lifeCycleListeners {
+		listener.OnStart(b.ctx)
+	}
+}
+
+func (b *localBus) informStopping() {
+	for _, listener := range b.lifeCycleListeners {
+		listener.OnStop()
+	}
 }
 
 // WithBufferSize sets the size of the event buffer.

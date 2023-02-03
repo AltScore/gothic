@@ -16,8 +16,8 @@ import (
 )
 
 type PullAdapterConfig struct {
-	ProjectID        string `yaml:"project_id"`
-	SubscriptionName string `yaml:"subscription_name"`
+	ProjectID        string
+	SubscriptionName string
 	Debug            bool
 }
 
@@ -29,6 +29,8 @@ type PullAdapter struct {
 	publisher eventbus.Publisher
 	encoding  codec.Encoding
 	sub       *pubsub.Subscription
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
 
 // NewPullAdapter creates a new PullAdapter that pulls events from a PubSub topic and publishes them to another publisher
@@ -46,7 +48,7 @@ func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, encoder
 
 	sub := client.Subscription(config.SubscriptionName)
 
-	return &PullAdapter{
+	pa := &PullAdapter{
 		client:    client,
 		logger:    log,
 		config:    config,
@@ -54,18 +56,42 @@ func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, encoder
 		encoding:  encoder,
 		sub:       sub,
 	}
+
+	if lp, ok := publisher.(eventbus.LifeCycleProvider); ok {
+		lp.AddLifecycleListener(lifeCycleListener{pa})
+
+	}
+
+	return pa
 }
 
 // Start starts the adapter
-func (a *PullAdapter) Start(ctx context.Context) error {
-	err := a.sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
-		if err := a.publish(ctx, m); err != nil {
-			m.Nack()
-		} else {
-			m.Ack() // Acknowledge that we've consumed the message.
+func (a *PullAdapter) start(ctx context.Context) error {
+	a.ctx, a.cancel = context.WithCancel(ctx)
+
+	go func() {
+		err := a.sub.Receive(a.ctx, func(ctx context.Context, m *pubsub.Message) {
+			if err := a.publish(ctx, m); err != nil {
+				m.Nack()
+			} else {
+				m.Ack() // Acknowledge that we've consumed the message.
+			}
+		})
+		if err != nil {
+			a.logger.Error("Failed to receive from PubSub", zap.Error(err))
 		}
-	})
-	return err
+	}()
+
+	return nil
+}
+
+func (a *PullAdapter) stop() {
+	if a.cancel != nil {
+		a.logger.Info("Stopping PubSub adapter, canceling context")
+		a.cancel()
+		a.cancel = nil
+		a.ctx = nil
+	}
 }
 
 func (a *PullAdapter) publish(ctx context.Context, m *pubsub.Message) error {
@@ -138,4 +164,20 @@ func (a *PullAdapter) unmarshalEvent(msg *pubsub.Message) (event.Event, error) {
 	)
 
 	return &ev, nil
+}
+
+type lifeCycleListener struct {
+	adapter *PullAdapter
+}
+
+func (l lifeCycleListener) OnStart(ctx context.Context) {
+	err := l.adapter.start(ctx)
+	if err != nil {
+		l.adapter.logger.Error("Failed to start PubSub adapter", zap.Error(err))
+		panic(err)
+	}
+}
+
+func (l lifeCycleListener) OnStop() {
+	l.adapter.stop()
 }

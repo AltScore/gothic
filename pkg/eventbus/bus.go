@@ -23,6 +23,17 @@ type Callback func(event Event, err error)
 
 type Option func(*EventEnvelope)
 
+// LifeCycleProvider is implemented by buses that allows to add a listener that is called when the bus is started or stopped.
+type LifeCycleProvider interface {
+	// AddLifecycleListener adds a listener that is called when the bus is started or stopped.
+	AddLifecycleListener(listener LifeCycleListener)
+}
+
+type LifeCycleListener interface {
+	OnStart(ctx context.Context)
+	OnStop()
+}
+
 type Publisher interface {
 	// Publish publishes an event. Methods can return before the Event is handled.
 	Publish(event Event, options ...Option) error
@@ -40,7 +51,9 @@ type Subscriber interface {
 // The handler can return an error, which will be returned by the Publish method.
 // The publisher can publish as fire-and-forget, or wait for the handler to confirm the processing (replyHandler).
 type EventBus interface {
+	// Start starts the event bus to process events.
 	Start() error
+	// Stop stops the event bus.
 	Stop() error
 
 	Publisher
