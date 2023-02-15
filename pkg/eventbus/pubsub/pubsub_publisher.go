@@ -14,9 +14,9 @@ import (
 )
 
 type PublisherConfig struct {
-	ProjectID  string `yaml:"project_id"`
-	TopicName  string `yaml:"topic_name"`
-	LogMessage bool   `yaml:"log_message"`
+	ProjectID  string
+	TopicName  string
+	LogMessage bool
 }
 
 type Publisher struct {
