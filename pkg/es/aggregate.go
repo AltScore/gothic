@@ -2,6 +2,7 @@ package es
 
 import (
 	"fmt"
+	"github.com/AltScore/gothic/pkg/ids"
 
 	"github.com/AltScore/gothic/pkg/es/event"
 )
@@ -12,7 +13,7 @@ type Snapshot interface {
 }
 
 type Aggregate[SS Snapshot] interface {
-	ID() string
+	ID() ids.ID
 	Type() string
 	Version() int
 	Snapshot() SS
@@ -22,7 +23,7 @@ type Aggregate[SS Snapshot] interface {
 
 type AggregateBase[SS Snapshot] struct {
 	type_      string
-	id         string
+	id         ids.ID
 	version    int
 	events     []event.Event
 	nextToSave int
@@ -32,7 +33,7 @@ type AggregateBase[SS Snapshot] struct {
 type Option[SS Snapshot] func(*AggregateBase[SS])
 
 func NewAgg[SS Snapshot](
-	id string,
+	id ids.ID,
 	type_ string,
 	events []event.Event,
 	opts ...Option[SS],
@@ -67,7 +68,7 @@ func Reify[Agg Aggregate[SS], SS Snapshot](previousEvents []event.Event, factory
 	return aggregate, aggregate.Replay()
 }
 
-func (a *AggregateBase[SS]) ID() string {
+func (a *AggregateBase[SS]) ID() ids.ID {
 	return a.id
 }
 
@@ -96,7 +97,7 @@ func (a *AggregateBase[SS]) Replay() error {
 	return nil
 }
 
-func (a *AggregateBase[SS]) SetId(id string) {
+func (a *AggregateBase[SS]) SetId(id ids.ID) {
 	a.id = id
 }
 

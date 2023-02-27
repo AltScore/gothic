@@ -1,12 +1,13 @@
 package es
 
 import (
+	"github.com/AltScore/gothic/pkg/ids"
 	"time"
 )
 
 type Metadata struct {
 	entityType string
-	entityID   string
+	entityID   ids.ID
 	type_      string
 	version    int
 	datetime   time.Time
@@ -14,7 +15,7 @@ type Metadata struct {
 
 func NewMetadata(
 	entityType string,
-	entityID string,
+	entityID ids.ID,
 	type_ string,
 	version int) Metadata {
 	return Metadata{
@@ -30,7 +31,7 @@ func (m *Metadata) EntityType() string {
 	return m.entityType
 }
 
-func (m *Metadata) EntityID() string {
+func (m *Metadata) EntityID() ids.ID {
 	return m.entityID
 }
 

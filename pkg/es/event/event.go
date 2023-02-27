@@ -7,10 +7,10 @@ import (
 )
 
 type ID = ids.ID
-type AggID = string
+type AggID = ids.ID
 
 type Aggregate interface {
-	ID() string
+	ID() ids.ID
 	Type() string
 	Version() int
 }
@@ -27,7 +27,7 @@ type IEvent interface {
 	// Aggregate returns the id, name and version of the aggregate that the
 	// event belongs to. aggregate should return zero values if the event is not
 	// an aggregate event.
-	Aggregate() (id string, name string, version int)
+	Aggregate() (id ids.ID, name string, version int)
 }
 
 type Metadata struct {
