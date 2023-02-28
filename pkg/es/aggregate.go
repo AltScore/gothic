@@ -158,8 +158,15 @@ func (a *AggregateBase[SS]) GetNewEvents() []event.Event {
 	return a.events[a.nextToSave:]
 }
 
-func (a *AggregateBase[SS]) MarkEventsAsSaved() {
-	a.nextToSave = len(a.events)
+func (a *AggregateBase[SS]) WithEventsSaved() AggregateBase[SS] {
+	return AggregateBase[SS]{
+		type_:      a.type_,
+		id:         a.id,
+		version:    a.version,
+		events:     a.events,
+		nextToSave: len(a.events),
+		snapshot:   a.snapshot,
+	}
 }
 
 func (a *AggregateBase[SS]) HasEventsToSave() bool {
