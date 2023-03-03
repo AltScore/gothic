@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"context"
+	"github.com/AltScore/gothic/pkg/xcontext"
 	"reflect"
 	"testing"
 	"time"
@@ -100,4 +102,39 @@ func TestMetadata_Clone(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_NewIn(t *testing.T) {
+	// WHEN create new
+	ctxWithTenant := context.WithValue(context.Background(), xcontext.TenantCtxKey, "tenant")
+
+	m := NewIn(ctxWithTenant)
+
+	// THEN should have a new ID
+	assert.NotEmpty(t, m.ID)
+
+	// AND should have the given tenant
+	assert.Equal(t, "tenant", m.TenantID)
+}
+
+func Test_NewInAt(t *testing.T) {
+	// GIVEN a time
+	now := time.Now()
+
+	// WHEN create new
+	ctxWithTenant := context.WithValue(context.Background(), xcontext.TenantCtxKey, "tenant")
+
+	m := NewInAt(ctxWithTenant, now)
+
+	// THEN should have a new ID
+	assert.NotEmpty(t, m.ID)
+
+	// AND should have the given CreatedAt
+	assert.Equal(t, now, m.CreatedAt)
+
+	// AND should have the given UpdatedAt
+	assert.Equal(t, now, m.UpdatedAt)
+
+	// AND should have the given tenant
+	assert.Equal(t, "tenant", m.TenantID)
 }

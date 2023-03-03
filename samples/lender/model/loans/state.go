@@ -2,6 +2,7 @@ package loans
 
 import (
 	"github.com/AltScore/gothic/pkg/es/event"
+	"github.com/AltScore/gothic/pkg/ids"
 )
 
 type State string
@@ -13,7 +14,7 @@ const (
 )
 
 type LoanView struct {
-	ID               ID
+	ID               ids.ID
 	Version          int
 	ClientID         ClientID
 	TransactionID    string

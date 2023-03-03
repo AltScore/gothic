@@ -110,7 +110,7 @@ func Test_EmptyEvent_can_be_unmarshalled(t *testing.T) {
 	require.Equal(t, EmptyEventName, actual.Name())
 	require.Equal(t, 0, version)
 	require.Equal(t, "", name)
-	require.Equal(t, "", id)
+	require.Empty(t, id)
 }
 
 func Test_EventWithData_can_be_unmarshalled(t *testing.T) {
@@ -144,7 +144,7 @@ func Test_EventWithData_can_be_unmarshalled(t *testing.T) {
 	require.Equal(t, EventWithDataName, actual.Name())
 	require.Equal(t, 0, version)
 	require.Equal(t, "", name)
-	require.Equal(t, "", id)
+	require.Empty(t, id)
 
 	require.Equal(t, &data, actualData)
 }

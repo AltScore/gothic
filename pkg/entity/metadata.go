@@ -1,10 +1,14 @@
 package entity
 
 import (
+	"context"
+	"github.com/AltScore/gothic/pkg/xcontext"
 	"time"
 
 	"github.com/AltScore/gothic/pkg/ids"
 )
+
+const DefaultTenant = "default"
 
 // Metadata is the metadata for any entity.
 type Metadata struct {
@@ -12,6 +16,7 @@ type Metadata struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Version   int       `json:"version"`
+	TenantID  string    `json:"tenant"`
 }
 
 func New() Metadata {
@@ -28,9 +33,35 @@ func NewAt(now time.Time) Metadata {
 	}
 }
 
+// NewIn creates a new entity with the given context.
+func NewIn(ctx context.Context) Metadata {
+	tenantID := xcontext.TenantOrDefault(ctx, DefaultTenant)
+
+	return Metadata{
+		ID:       ids.New(),
+		TenantID: tenantID,
+	}
+}
+
+// NewInAt creates a new entity with the given context and time.
+func NewInAt(ctx context.Context, now time.Time) Metadata {
+	tenantID := xcontext.TenantOrDefault(ctx, "default")
+
+	return Metadata{
+		ID:        ids.New(),
+		CreatedAt: now,
+		UpdatedAt: now,
+		TenantID:  tenantID,
+	}
+}
+
 // GetID returns the ID of the entity. Implements Identifiable interfaces.
 func (e Metadata) GetID() ids.ID {
 	return e.ID
+}
+
+func (e Metadata) Tenant() string {
+	return e.TenantID
 }
 
 // Clone returns a clone of the entity with a new ID and CreatedAt if necessary. Updates UpdatedAt.
@@ -40,6 +71,7 @@ func (e Metadata) Clone(now time.Time) Metadata {
 		CreatedAt: e.createdAtOrNow(now),
 		UpdatedAt: now,
 		Version:   e.Version + 1,
+		TenantID:  e.TenantID,
 	}
 }
 

@@ -2,6 +2,7 @@ package loans
 
 import (
 	"fmt"
+	"github.com/AltScore/gothic/pkg/ids"
 
 	"github.com/AltScore/gothic/pkg/es"
 	"github.com/AltScore/gothic/pkg/es/event"
@@ -18,7 +19,7 @@ type Aggregate struct {
 // New creates a new aggregate with a new ID.
 func New() *Aggregate {
 	return &Aggregate{
-		AggregateBase: es.NewAgg[*LoanView](NewId(), EntityType, nil, es.WithSnapshot(&LoanView{})),
+		AggregateBase: es.NewAgg[*LoanView](ids.New(), EntityType, nil, es.WithSnapshot(&LoanView{})),
 	}
 }
 
