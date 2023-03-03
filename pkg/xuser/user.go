@@ -5,6 +5,6 @@ import "github.com/AltScore/gothic/pkg/ids"
 type User interface {
 	ID() ids.ID
 	Name() string
-	TenantID() ids.ID
+	TenantID() string
 	HasPermission(permission string) bool
 }

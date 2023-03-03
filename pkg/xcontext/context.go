@@ -20,6 +20,12 @@ func User(ctx context.Context) (user xuser.User, found bool) {
 
 // Tenant returns the tenant from the context if it exists.
 func Tenant(ctx context.Context) (tenant string, found bool) {
+	user, found := User(ctx)
+
+	if found {
+		return user.TenantID(), true
+	}
+
 	tenant, found = ctx.Value(TenantCtxKey).(string)
 	return tenant, found
 }

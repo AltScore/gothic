@@ -14,7 +14,7 @@ type Metadata struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Version   int       `json:"version"`
-	TenantID  string    `json:"tenant"`
+	Tenant    string    `json:"tenant"`
 }
 
 func New() Metadata {
@@ -36,20 +36,20 @@ func NewIn(ctx context.Context) Metadata {
 	tenantID := xcontext.TenantOrDefault(ctx)
 
 	return Metadata{
-		ID:       ids.New(),
-		TenantID: tenantID,
+		ID:     ids.New(),
+		Tenant: tenantID,
 	}
 }
 
 // NewInAt creates a new entity with the given context and time.
 func NewInAt(ctx context.Context, now time.Time) Metadata {
-	tenantID := xcontext.TenantOrDefault(ctx)
+	tenant := xcontext.TenantOrDefault(ctx)
 
 	return Metadata{
 		ID:        ids.New(),
 		CreatedAt: now,
 		UpdatedAt: now,
-		TenantID:  tenantID,
+		Tenant:    tenant,
 	}
 }
 
@@ -58,8 +58,8 @@ func (e Metadata) GetID() ids.ID {
 	return e.ID
 }
 
-func (e Metadata) Tenant() string {
-	return e.TenantID
+func (e Metadata) GetTenant() string {
+	return e.Tenant
 }
 
 // Clone returns a clone of the entity with a new ID and CreatedAt if necessary. Updates UpdatedAt.
@@ -69,14 +69,14 @@ func (e Metadata) Clone(now time.Time) Metadata {
 		CreatedAt: e.createdAtOrNow(now),
 		UpdatedAt: now,
 		Version:   e.Version + 1,
-		TenantID:  e.TenantID,
+		Tenant:    e.Tenant,
 	}
 }
 
 func (e Metadata) CloneIn(ctx context.Context, now time.Time) Metadata {
 	clone := e.Clone(now)
-	if e.TenantID == "" {
-		clone.TenantID = xcontext.TenantOrDefault(ctx)
+	if e.Tenant == "" {
+		clone.Tenant = xcontext.TenantOrDefault(ctx)
 	}
 	return clone
 }

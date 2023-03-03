@@ -114,7 +114,7 @@ func Test_NewIn(t *testing.T) {
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given tenant
-	assert.Equal(t, "tenant", m.TenantID)
+	assert.Equal(t, "tenant", m.Tenant)
 }
 
 func Test_NewInAt(t *testing.T) {
@@ -136,5 +136,5 @@ func Test_NewInAt(t *testing.T) {
 	assert.Equal(t, now, m.UpdatedAt)
 
 	// AND should have the given tenant
-	assert.Equal(t, "tenant", m.TenantID)
+	assert.Equal(t, "tenant", m.Tenant)
 }
