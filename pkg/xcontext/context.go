@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	UserCtxKey   = "x-user"
-	TenantCtxKey = "tenantID"
+	UserCtxKey    = "x-user"
+	TenantCtxKey  = "tenantID"
+	DefaultTenant = "default"
 )
 
 // User returns the user from the context if it exists.
@@ -23,11 +24,11 @@ func Tenant(ctx context.Context) (tenant string, found bool) {
 	return tenant, found
 }
 
-// TenantOrDefault returns the tenant from the context if it exists or the given default value.
-func TenantOrDefault(ctx context.Context, defaultTenant string) string {
+// TenantOrDefault returns the tenant from the context if it exists or the default value.
+func TenantOrDefault(ctx context.Context) string {
 	tenant, found := Tenant(ctx)
 	if found {
 		return tenant
 	}
-	return defaultTenant
+	return DefaultTenant
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/AltScore/gothic/pkg/ids"
 )
 
-const DefaultTenant = "default"
-
 // Metadata is the metadata for any entity.
 type Metadata struct {
 	ID        ids.ID    `json:"id" bson:"_id"`
@@ -35,7 +33,7 @@ func NewAt(now time.Time) Metadata {
 
 // NewIn creates a new entity with the given context.
 func NewIn(ctx context.Context) Metadata {
-	tenantID := xcontext.TenantOrDefault(ctx, DefaultTenant)
+	tenantID := xcontext.TenantOrDefault(ctx)
 
 	return Metadata{
 		ID:       ids.New(),
@@ -45,7 +43,7 @@ func NewIn(ctx context.Context) Metadata {
 
 // NewInAt creates a new entity with the given context and time.
 func NewInAt(ctx context.Context, now time.Time) Metadata {
-	tenantID := xcontext.TenantOrDefault(ctx, "default")
+	tenantID := xcontext.TenantOrDefault(ctx)
 
 	return Metadata{
 		ID:        ids.New(),
@@ -73,6 +71,14 @@ func (e Metadata) Clone(now time.Time) Metadata {
 		Version:   e.Version + 1,
 		TenantID:  e.TenantID,
 	}
+}
+
+func (e Metadata) CloneIn(ctx context.Context, now time.Time) Metadata {
+	clone := e.Clone(now)
+	if e.TenantID == "" {
+		clone.TenantID = xcontext.TenantOrDefault(ctx)
+	}
+	return clone
 }
 
 func (e Metadata) createdAtOrNow(now time.Time) time.Time {

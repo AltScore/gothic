@@ -27,3 +27,9 @@ func EnsureNotNil(pointer any, format string, args ...any) {
 		// Everything ok
 	}
 }
+
+func EnsureNotEmpty(value string, format string, args ...any) {
+	if value == "" {
+		panic(fmt.Sprintf(format, args...))
+	}
+}
