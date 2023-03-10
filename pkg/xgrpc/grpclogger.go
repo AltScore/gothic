@@ -17,7 +17,7 @@ func NewLoggerInterceptor(logger xlogger.Logger) grpc.UnaryServerInterceptor {
 
 		elapsed := time.Since(start)
 
-		logger.Info("GRPC request", zap.String("method", info.FullMethod), zap.Duration("elapsed-ms", elapsed), zap.Error(err))
+		logger.Info("GRPC request", zap.String("method", info.FullMethod), zap.Int64("elapsed-ns", elapsed.Nanoseconds()), zap.Error(err))
 
 		if err != nil {
 			return result, convertError(err)
