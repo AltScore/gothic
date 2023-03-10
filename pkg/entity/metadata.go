@@ -14,7 +14,7 @@ type Metadata struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Version   int       `json:"version"`
-	Tenant    string    `json:"tenant"`
+	Tenant    string    `json:"tenant,omitempty"`
 }
 
 func New() Metadata {
