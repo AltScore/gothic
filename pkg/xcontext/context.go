@@ -2,8 +2,8 @@ package xcontext
 
 import (
 	"context"
+	"github.com/AltScore/gothic/pkg/xerrors"
 	"github.com/AltScore/gothic/pkg/xuser"
-	"github.com/AltScore/lccb-api/pkg/xerrors"
 )
 
 var unauthorized = xerrors.NewUnauthorized("unauthorized")

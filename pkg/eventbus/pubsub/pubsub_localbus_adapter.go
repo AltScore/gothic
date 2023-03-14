@@ -4,9 +4,9 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
-	"github.com/AltScore/gothic/pkg/errors"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
+	"github.com/AltScore/gothic/pkg/xerrors"
 	"github.com/google/uuid"
 	"github.com/modernice/goes/codec"
 	"github.com/modernice/goes/event"
@@ -40,9 +40,9 @@ type PullAdapter struct {
 // To authenticate with PubSub, the GOOGLE_APPLICATION_CREDENTIALS environment variable must be set
 // See https://cloud.google.com/docs/authentication/getting-started for more information
 func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, encoder codec.Encoding, log logger.Logger, config PullAdapterConfig) *PullAdapter {
-	errors.EnsureNotNil(client, "client")
-	errors.EnsureNotNil(encoder, "encoder")
-	errors.EnsureNotNil(encoder, "encoder")
+	xerrors.EnsureNotNil(client, "client")
+	xerrors.EnsureNotNil(encoder, "encoder")
+	xerrors.EnsureNotNil(encoder, "encoder")
 
 	log.Info("Connected to PubSub", zap.String("project_id", config.ProjectID), zap.String("subscription", config.SubscriptionName))
 

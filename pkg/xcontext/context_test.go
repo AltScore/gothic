@@ -9,13 +9,13 @@ import (
 
 func TestContextHasUser(t *testing.T) {
 	user := &mockUser{}
-	ctx := context.WithValue(context.Background(), UserCtxKey, user)
+	ctx := WithUser(context.Background(), user)
 
 	// WHEN calls User
-	actual, ok := User(ctx)
+	actual, err := User(ctx)
 
 	// THEN
-	require.True(t, ok)
+	require.Nil(t, err)
 	require.Equal(t, user, actual)
 }
 
@@ -24,10 +24,10 @@ func TestContextNoUser(t *testing.T) {
 	ctx := context.Background()
 
 	// WHEN calls User
-	actual, ok := User(ctx)
+	actual, err := User(ctx)
 
 	// THEN
-	require.False(t, ok)
+	require.Error(t, err)
 	require.Nil(t, actual)
 }
 
@@ -36,10 +36,10 @@ func TestContextWrongType(t *testing.T) {
 	ctx := context.WithValue(context.Background(), UserCtxKey, "not a user")
 
 	// WHEN calls User
-	actual, ok := User(ctx)
+	actual, err := User(ctx)
 
 	// THEN
-	require.False(t, ok)
+	require.Error(t, err)
 	require.Nil(t, actual)
 }
 
@@ -54,7 +54,7 @@ func (m *mockUser) Name() string {
 	panic("should not be called")
 }
 
-func (m *mockUser) TenantID() ids.ID {
+func (m *mockUser) TenantID() string {
 	panic("should not be called")
 }
 

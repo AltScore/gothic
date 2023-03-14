@@ -3,9 +3,9 @@ package pubsub
 import (
 	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/AltScore/gothic/pkg/errors"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
+	"github.com/AltScore/gothic/pkg/xerrors"
 	"github.com/modernice/goes/codec"
 	"github.com/modernice/goes/event"
 	"go.uber.org/zap"
@@ -36,8 +36,8 @@ type Publisher struct {
 // To authenticate with PubSub, the GOOGLE_APPLICATION_CREDENTIALS environment variable must be set
 // See https://cloud.google.com/docs/authentication/getting-started for more information
 func NewPublisher(ctx context.Context, client *pubsub.Client, encoding codec.Encoding, log logger.Logger, config PublisherConfig) *Publisher {
-	errors.EnsureNotNil(client, "PubSub client")
-	errors.EnsureNotNil(encoding, "Event encoding")
+	xerrors.EnsureNotNil(client, "PubSub client")
+	xerrors.EnsureNotNil(encoding, "Event encoding")
 
 	log.Info("Connected to PubSub", zap.String("project_id", config.ProjectID), zap.String("topic_name", config.TopicName))
 

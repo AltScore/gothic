@@ -2,16 +2,19 @@ package xgrpc
 
 import (
 	"errors"
-	"github.com/AltScore/lccb-api/pkg/xapi"
 	"github.com/go-playground/validator/v10"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"net/http"
 )
 
+type HTTPStatusProvider interface {
+	HTTPStatus() int
+}
+
 // convertError converts errors to gRPC errors
 func convertError(err error) error {
-	var statusProvider xapi.HTTPStatusProvider
+	var statusProvider HTTPStatusProvider
 	if errors.As(err, &statusProvider) {
 		return convertWithHttpStatus(err, statusProvider)
 	}
@@ -29,7 +32,7 @@ func convertError(err error) error {
 	return err
 }
 
-func convertWithHttpStatus(err error, provider xapi.HTTPStatusProvider) error {
+func convertWithHttpStatus(err error, provider HTTPStatusProvider) error {
 	switch provider.HTTPStatus() {
 	case http.StatusBadRequest:
 		return status.Error(codes.InvalidArgument, err.Error())
