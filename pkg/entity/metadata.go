@@ -11,10 +11,10 @@ import (
 // Metadata is the metadata for any entity.
 type Metadata struct {
 	ID        ids.ID    `json:"id" bson:"_id"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Version   int       `json:"version"`
-	Tenant    string    `json:"tenant,omitempty"`
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
+	Version   int       `json:"version" bson:"version"`
+	Tenant    string    `json:"tenant,omitempty" bson:"tenant,omitempty"`
 }
 
 func New() Metadata {
