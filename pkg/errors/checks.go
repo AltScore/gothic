@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// EnsureNotNil panics if the given pointer is nil.
 func EnsureNotNil(pointer any, format string, args ...any) {
 	if pointer == nil {
 		panic(fmt.Sprintf(format, args...))
@@ -28,8 +29,16 @@ func EnsureNotNil(pointer any, format string, args ...any) {
 	}
 }
 
+// EnsureNotEmpty panics if the given string is empty.
 func EnsureNotEmpty(value string, format string, args ...any) {
 	if value == "" {
+		panic(fmt.Sprintf(format, args...))
+	}
+}
+
+// EnsureHasKey panics if the given map does not contain the given key.
+func EnsureHasKey[K comparable, V any](value map[K]V, key K, format string, args ...any) {
+	if _, found := value[key]; !found {
 		panic(fmt.Sprintf(format, args...))
 	}
 }

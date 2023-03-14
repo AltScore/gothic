@@ -49,3 +49,8 @@ func TenantOrDefault(ctx context.Context) string {
 	}
 	return DefaultTenant
 }
+
+// WithUser returns a new context with the user set.
+func WithUser(ctx context.Context, user xuser.User) context.Context {
+	return context.WithValue(ctx, UserCtxKey, user)
+}
