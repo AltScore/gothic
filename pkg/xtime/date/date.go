@@ -87,3 +87,18 @@ func (d Date) Format(layout string) string {
 func (d Date) Weekday() time.Weekday {
 	return d.Time().Weekday()
 }
+
+// After reports whether the date is after the other.
+func (d Date) After(other Date) bool {
+	return d.Time().After(other.Time())
+}
+
+// Before reports whether the date is before the other.
+func (d Date) Before(other Date) bool {
+	return d.Time().Before(other.Time())
+}
+
+// Equal reports whether the date is equal to the other.
+func (d Date) Equal(other Date) bool {
+	return d.Time().Equal(other.Time())
+}
