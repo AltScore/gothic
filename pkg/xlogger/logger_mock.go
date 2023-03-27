@@ -24,6 +24,10 @@ func (l *LoggerMock) Log(lvl zapcore.Level, msg string, fields ...zap.Field) {
 	})
 }
 
+func (l *LoggerMock) Debug(msg string, fields ...zap.Field) {
+	l.Log(zapcore.DebugLevel, msg, fields...)
+}
+
 func (l *LoggerMock) Info(msg string, fields ...zap.Field) {
 	l.Log(zapcore.InfoLevel, msg, fields...)
 }
