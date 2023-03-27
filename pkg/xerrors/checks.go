@@ -18,7 +18,11 @@ func EnsureNotEmpty(pointer any, format string, args ...any) {
 	}
 
 	switch reflect.TypeOf(pointer).Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Array, reflect.Chan, reflect.Slice:
+	case reflect.Map, reflect.Array, reflect.Slice:
+		if reflect.ValueOf(pointer).IsNil() || reflect.ValueOf(pointer).Len() == 0 {
+			panic(fmt.Sprintf(format, args...))
+		}
+	case reflect.Ptr, reflect.Chan:
 		if reflect.ValueOf(pointer).IsNil() {
 			panic(fmt.Sprintf(format, args...))
 		}
@@ -37,14 +41,6 @@ func EnsureNotEmpty(pointer any, format string, args ...any) {
 
 	default:
 		// Everything ok
-	}
-}
-
-// EnsureNotEmpty panics if the given string is empty.
-// Deprecated: Use EnsureNotEmpty instead.
-func EnsureNotEmpty(value string, format string, args ...any) {
-	if value == "" {
-		panic(fmt.Sprintf(format, args...))
 	}
 }
 
