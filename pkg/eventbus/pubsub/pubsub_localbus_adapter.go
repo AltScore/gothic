@@ -40,9 +40,9 @@ type PullAdapter struct {
 // To authenticate with PubSub, the GOOGLE_APPLICATION_CREDENTIALS environment variable must be set
 // See https://cloud.google.com/docs/authentication/getting-started for more information
 func NewPullAdapter(client *pubsub.Client, publisher eventbus.Publisher, encoder codec.Encoding, log logger.Logger, config PullAdapterConfig) *PullAdapter {
-	xerrors.EnsureNotNil(client, "client")
-	xerrors.EnsureNotNil(encoder, "encoder")
-	xerrors.EnsureNotNil(encoder, "encoder")
+	xerrors.EnsureNotEmpty(client, "client")
+	xerrors.EnsureNotEmpty(encoder, "encoder")
+	xerrors.EnsureNotEmpty(encoder, "encoder")
 
 	log.Info("Connected to PubSub", zap.String("project_id", config.ProjectID), zap.String("subscription", config.SubscriptionName))
 
