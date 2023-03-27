@@ -34,10 +34,6 @@ func EnsureNotEmpty(pointer any, format string, args ...any) {
 		if pointer == 0 {
 			panic(fmt.Sprintf(format, args...))
 		}
-	case reflect.Slice, reflect.Array:
-		if reflect.ValueOf(pointer).Len() == 0 {
-			panic(fmt.Sprintf(format, args...))
-		}
 
 	default:
 		// Everything ok
