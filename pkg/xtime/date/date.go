@@ -105,10 +105,6 @@ func (d Date) Equal(other Date) bool {
 	return d.Time().Equal(other.Time())
 }
 
-func (d Date) Duration() time.Duration {
-	return d.Time().Sub(time.Time{})
-}
-
 func (d Date) NonZeroMin(other Date) Date {
 	if d.IsZero() {
 		return other
