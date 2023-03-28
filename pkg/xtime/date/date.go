@@ -1,6 +1,8 @@
 package date
 
-import "time"
+import (
+	"time"
+)
 
 const RFC3339Date = `2006-01-02`
 
@@ -101,4 +103,21 @@ func (d Date) Before(other Date) bool {
 // Equal reports whether the date is equal to the other.
 func (d Date) Equal(other Date) bool {
 	return d.Time().Equal(other.Time())
+}
+
+func (d Date) NonZeroMin(other Date) Date {
+	if d.IsZero() {
+		return other
+	}
+	if other.IsZero() {
+		return d
+	}
+	return d.Min(other)
+}
+
+func (d Date) Min(other Date) Date {
+	if d.Before(other) {
+		return d
+	}
+	return other
 }

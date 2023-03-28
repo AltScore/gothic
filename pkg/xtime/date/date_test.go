@@ -113,3 +113,121 @@ func TestDate_Equal(t *testing.T) {
 		})
 	}
 }
+
+func TestDate_IsZero(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields Date
+		want   bool
+	}{
+		{
+			name:   "is zero",
+			fields: Date{t: time.Time{}},
+			want:   true,
+		},
+		{
+			name:   "is not zero",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.IsZero(); got != tt.want {
+				t.Errorf("IsZero() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+}
+
+func TestDate_Min(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields Date
+		args   Date
+		want   Date
+	}{
+		{
+			name:   "is before",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is equal",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.Min(tt.args); got != tt.want {
+				t.Errorf("Min() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDate_NonZeroMin(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields Date
+		args   Date
+		want   Date
+	}{
+		{
+			name:   "is before",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "field is empty",
+			fields: Date{},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "arg is empty",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{},
+			want:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is equal",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "field and args are empty",
+			fields: Date{},
+			args:   Date{},
+			want:   Date{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.NonZeroMin(tt.args); got != tt.want {
+				t.Errorf("NonZeroMin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
