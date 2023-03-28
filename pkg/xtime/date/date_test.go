@@ -192,7 +192,7 @@ func TestDate_NonZeroMin(t *testing.T) {
 			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 		},
 		{
-			name:   "is before",
+			name:   "field is empty",
 			fields: Date{},
 			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
@@ -204,7 +204,7 @@ func TestDate_NonZeroMin(t *testing.T) {
 			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 		},
 		{
-			name:   "is after",
+			name:   "arg is empty",
 			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
 			args:   Date{},
 			want:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
@@ -216,7 +216,7 @@ func TestDate_NonZeroMin(t *testing.T) {
 			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 		},
 		{
-			name:   "is equal",
+			name:   "field and args are empty",
 			fields: Date{},
 			args:   Date{},
 			want:   Date{},
