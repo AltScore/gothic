@@ -1,6 +1,7 @@
 package date
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -112,4 +113,49 @@ func TestDate_Equal(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDate_IsZero(t *testing.T) {
+	// check that d is Date{} if and only if d.IsZero is true
+	d := Date{}
+	assert.Equal(t, d.IsZero(), true)
+	d = From(time.Time{})
+	assert.Equal(t, d.IsZero(), true)
+	assert.Equal(t, d, Date{})
+}
+
+func Test_ZeroDateIsNotUnixZero(t *testing.T) {
+	d := From(time.Unix(0, 0))
+	assert.NotEqual(t, d, Date{})
+	assert.Equal(t, d.IsZero(), false)
+}
+
+func TestDate_Min(t *testing.T) {
+	d1 := Date{}
+	d2 := Date{}
+	assert.Equal(t, d1.Min(d2), Date{})
+
+	d1 = Date{}
+	d2 = New(2000, 10, 1)
+	assert.Equal(t, d1.Min(d2), d1)
+	assert.Equal(t, d2.Min(d1), d1)
+
+	d1 = New(2001, 10, 1)
+	d2 = New(2000, 10, 1)
+	assert.Equal(t, d1.Min(d2), d2)
+}
+
+func TestDate_NonZeroMin(t *testing.T) {
+	d1 := Date{}
+	d2 := Date{}
+	assert.Equal(t, d1.NonZeroMin(d2), Date{})
+
+	d1 = Date{}
+	d2 = New(2000, 10, 1)
+	assert.Equal(t, d1.NonZeroMin(d2), d2)
+	assert.Equal(t, d2.NonZeroMin(d1), d2)
+
+	d1 = New(2001, 10, 1)
+	d2 = New(2000, 10, 1)
+	assert.Equal(t, d1.NonZeroMin(d2), d2)
 }
