@@ -55,9 +55,12 @@ func (b *BsonRegistryBuilder) RegisterAll(registrants ...BsonCodecsRegistrant) *
 	return b
 }
 
-func (b *BsonRegistryBuilder) RegisterTypeDecoder(t reflect.Type, dec bsoncodec.ValueDecoder) *BsonRegistryBuilder {
+func (b *BsonRegistryBuilder) RegisterTypeDecoder(t reflect.Type, dec bsoncodec.ValueDecoder) {
 	b.RegistryBuilder.RegisterTypeDecoder(t, dec)
-	return b
+}
+
+func (b *BsonRegistryBuilder) RegisterTypeEncoder(t reflect.Type, dec bsoncodec.ValueEncoder) {
+	b.RegistryBuilder.RegisterTypeEncoder(t, dec)
 }
 
 // Build sets this registry as the BSON default
