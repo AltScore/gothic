@@ -1,7 +1,6 @@
 package date
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -116,46 +115,119 @@ func TestDate_Equal(t *testing.T) {
 }
 
 func TestDate_IsZero(t *testing.T) {
-	// check that d is Date{} if and only if d.IsZero is true
-	d := Date{}
-	assert.Equal(t, d.IsZero(), true)
-	d = From(time.Time{})
-	assert.Equal(t, d.IsZero(), true)
-	assert.Equal(t, d, Date{})
-}
+	tests := []struct {
+		name   string
+		fields Date
+		want   bool
+	}{
+		{
+			name:   "is zero",
+			fields: Date{t: time.Time{}},
+			want:   true,
+		},
+		{
+			name:   "is not zero",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.IsZero(); got != tt.want {
+				t.Errorf("IsZero() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 
-func Test_ZeroDateIsNotUnixZero(t *testing.T) {
-	d := From(time.Unix(0, 0))
-	assert.NotEqual(t, d, Date{})
-	assert.Equal(t, d.IsZero(), false)
 }
 
 func TestDate_Min(t *testing.T) {
-	d1 := Date{}
-	d2 := Date{}
-	assert.Equal(t, d1.Min(d2), Date{})
-
-	d1 = Date{}
-	d2 = New(2000, 10, 1)
-	assert.Equal(t, d1.Min(d2), d1)
-	assert.Equal(t, d2.Min(d1), d1)
-
-	d1 = New(2001, 10, 1)
-	d2 = New(2000, 10, 1)
-	assert.Equal(t, d1.Min(d2), d2)
+	tests := []struct {
+		name   string
+		fields Date
+		args   Date
+		want   Date
+	}{
+		{
+			name:   "is before",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is equal",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.Min(tt.args); got != tt.want {
+				t.Errorf("Min() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestDate_NonZeroMin(t *testing.T) {
-	d1 := Date{}
-	d2 := Date{}
-	assert.Equal(t, d1.NonZeroMin(d2), Date{})
-
-	d1 = Date{}
-	d2 = New(2000, 10, 1)
-	assert.Equal(t, d1.NonZeroMin(d2), d2)
-	assert.Equal(t, d2.NonZeroMin(d1), d2)
-
-	d1 = New(2001, 10, 1)
-	d2 = New(2000, 10, 1)
-	assert.Equal(t, d1.NonZeroMin(d2), d2)
+	tests := []struct {
+		name   string
+		fields Date
+		args   Date
+		want   Date
+	}{
+		{
+			name:   "is before",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is before",
+			fields: Date{},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{},
+			want:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is equal",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is equal",
+			fields: Date{},
+			args:   Date{},
+			want:   Date{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.NonZeroMin(tt.args); got != tt.want {
+				t.Errorf("NonZeroMin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -1,7 +1,6 @@
 package date
 
 import (
-	"github.com/samber/lo"
 	"time"
 )
 
@@ -121,5 +120,8 @@ func (d Date) NonZeroMin(other Date) Date {
 }
 
 func (d Date) Min(other Date) Date {
-	return lo.Ternary(d.Before(other), d, other)
+	if d.Before(other) {
+		return d
+	}
+	return other
 }
