@@ -126,6 +126,11 @@ func TestDate_IsZero(t *testing.T) {
 			want:   true,
 		},
 		{
+			name:   "is empty",
+			fields: Date{},
+			want:   true,
+		},
+		{
 			name:   "is not zero",
 			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
 			want:   false,
