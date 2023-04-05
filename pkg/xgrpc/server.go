@@ -17,10 +17,11 @@ type Server struct {
 	config Config
 }
 
-func NewServer(logger xlogger.Logger, config Config) *Server {
+func NewServer(logger xlogger.Logger, config Config, serverOptions ...grpc.ServerOption) *Server {
 	opts := []grpc.ServerOption{
 		grpc.UnaryInterceptor(NewLoggerInterceptor(logger)),
 	}
+	opts = append(opts, serverOptions...)
 
 	return &Server{
 		Server: grpc.NewServer(opts...),
