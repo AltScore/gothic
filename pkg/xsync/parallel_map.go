@@ -48,14 +48,15 @@ type parallelMapper[Input, Output any] struct {
 // If a mapper succeeds, the result is returned in the results slice.
 //
 // Example:
-//     values := []int{1, 2, 3, 4, 5}
-//     mapper := NewParallelMapper(func(ctx context.Context, v V) (T, error) {
-//  	    return v * v, nil
-//     }, WithMaxWait( 20 * time.Second), WithMaxWorkers(2))
 //
-//    errs := mapper.Map(values)
-//    results := mapper.Results()
-//    errs := mapper.Errors()
+//	   values := []int{1, 2, 3, 4, 5}
+//	   mapper := NewParallelMapper(func(ctx context.Context, v V) (T, error) {
+//		    return v * v, nil
+//	   }, WithMaxWait( 20 * time.Second), WithMaxWorkers(2))
+//
+//	  errs := mapper.Map(values)
+//	  results := mapper.Results()
+//	  errs := mapper.Errors()
 func NewParallelMapper[Input, Output any](worker func(Input) (Output, error), options ...ParallelOption) ParallelMapper[Input, Output] {
 	mapper := &parallelMapper[Input, Output]{
 		parallelMapperOptions: parallelMapperOptions{
@@ -108,7 +109,7 @@ func (p *parallelMapper[Input, Output]) Map(inputs []Input) error {
 		}
 
 		go func(i int) {
-			defer sem.Release(1)
+			defer sem.Release(1) // finally release the token
 			p.results[i], p.errs[i] = p.worker(inputs[i])
 		}(i)
 	}
