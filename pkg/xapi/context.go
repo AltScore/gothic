@@ -10,12 +10,15 @@ import (
 // https://pkg.go.dev/context
 // https://go.dev/blog/context-and-structs
 // ignore lint
+//
 //nolint:containedctx // This is valid context
 type apiContext struct {
 	context.Context
 	apiCtx echo.Context
 }
 
+// FromApi returns a context.Context that wraps the echo.Context.
+// The stored values in the echo.Context are accessible via the context.Context.
 func FromApi(ctx echo.Context) context.Context {
 	return &apiContext{
 		Context: ctx.Request().Context(),

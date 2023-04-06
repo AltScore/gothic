@@ -12,6 +12,9 @@ type call struct {
 	msg    string
 	fields []zap.Field
 }
+
+// LoggerMock is a mock logger that can be used to assert that logs were called.
+// Deprecated: use https://pkg.go.dev/go.uber.org/zap@v1.24.0/zaptest/observer instead.
 type LoggerMock struct {
 	calls []call
 }

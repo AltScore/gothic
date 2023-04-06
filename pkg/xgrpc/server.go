@@ -1,7 +1,6 @@
 package xgrpc
 
 import (
-	"github.com/AltScore/gothic/pkg/xlogger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net"
@@ -13,11 +12,11 @@ type Config struct {
 
 type Server struct {
 	*grpc.Server
-	logger xlogger.Logger
+	logger *zap.Logger
 	config Config
 }
 
-func NewServer(logger xlogger.Logger, config Config, unaryInterceptors ...grpc.UnaryServerInterceptor) *Server {
+func NewServer(logger *zap.Logger, config Config, unaryInterceptors ...grpc.UnaryServerInterceptor) *Server {
 	interceptors := []grpc.UnaryServerInterceptor{
 		NewLoggerInterceptor(logger),
 	}
