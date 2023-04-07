@@ -10,7 +10,7 @@ var unauthorized = xerrors.NewUnauthorized("unauthorized")
 
 const (
 	UserCtxKey    = "x-user"
-	TenantCtxKey  = "tenantID"
+	TenantCtxKey  = "x-tenant"
 	DefaultTenant = "default"
 )
 
