@@ -1,6 +1,7 @@
 package date
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
@@ -232,6 +233,34 @@ func TestDate_NonZeroMin(t *testing.T) {
 			d := tt.fields
 			if got := d.NonZeroMin(tt.args); got != tt.want {
 				t.Errorf("NonZeroMin() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// AsNullable() returns *Date or nil if the Date is empty.
+func TestDate_AsNullable(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields Date
+		want   *Date
+	}{
+		{
+			name:   "is not empty",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   &Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name:   "is empty",
+			fields: Date{},
+			want:   nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			if got := d.AsNullable(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("AsNullable() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -121,3 +121,10 @@ func (d Date) Min(other Date) Date {
 	}
 	return other
 }
+
+func (d Date) AsNullable() *Date {
+	if d.IsZero() {
+		return nil
+	}
+	return &d
+}
