@@ -6,19 +6,20 @@ import (
 )
 
 const (
-	NotFoundReason         = "not found for"
-	DuplicateReason        = "duplicate"
-	FoundManyReason        = "found many but one expected"
-	TypeAssertionReason    = "type assertion failed"
-	UnknownReason          = "unknown error found"
-	InvalidArgumentReason  = "invalid argument"
-	InvalidStateReason     = "invalid state"
-	ClientCanceledReason   = "client cancelled"
-	TimeoutReason          = "timeout"
-	GatewayReason          = "gateway"
-	UnauthorizedReason     = "unauthorized" // Not authenticated
-	ForbiddenReason        = "forbidden"
-	InvalidEventTypeReason = "invalid event type"
+	NotFoundReason          = "not found for"
+	DuplicateReason         = "duplicate"
+	OptimisticLockingReason = "optimistic locking"
+	FoundManyReason         = "found many but one expected"
+	TypeAssertionReason     = "type assertion failed"
+	UnknownReason           = "unknown error found"
+	InvalidArgumentReason   = "invalid argument"
+	InvalidStateReason      = "invalid state"
+	ClientCanceledReason    = "client cancelled"
+	TimeoutReason           = "timeout"
+	GatewayReason           = "gateway"
+	UnauthorizedReason      = "unauthorized" // Not authenticated
+	ForbiddenReason         = "forbidden"
+	InvalidEventTypeReason  = "invalid event type"
 )
 
 type Error struct {
@@ -81,6 +82,16 @@ func NewDuplicateError(entity string, details string, keyFmt string, args ...int
 		Entity:     entity,
 		Key:        fmt.Sprintf(keyFmt, args...),
 		Reason:     DuplicateReason,
+		Details:    details,
+		httpStatus: 409,
+	}
+}
+
+func NewOptimisticLockingError(entity string, details string, keyFmt string, args ...interface{}) Error {
+	return Error{
+		Entity:     entity,
+		Key:        fmt.Sprintf(keyFmt, args...),
+		Reason:     OptimisticLockingReason,
 		Details:    details,
 		httpStatus: 409,
 	}
