@@ -37,6 +37,16 @@ func Parse(s string) (Date, bool) {
 	return From(t), true
 }
 
+// MustParse parses a date in RFC3339 format (yyyy-mm-dd) and panics if the date is invalid.
+// It is intended for use in variable initializations and tests.
+func MustParse(s string) Date {
+	d, ok := Parse(s)
+	if !ok {
+		panic("invalid date " + s)
+	}
+
+	return d
+}
 func (d Date) String() string {
 	return d.Format(RFC3339Date)
 }
