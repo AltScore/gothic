@@ -37,6 +37,10 @@ func Parse(s string) (Date, bool) {
 	return From(t), true
 }
 
+func (d Date) String() string {
+	return d.Format(RFC3339Date)
+}
+
 // Time returns the time.Time representation of the date.
 func (d Date) Time() time.Time {
 	return d.t

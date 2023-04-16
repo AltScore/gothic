@@ -265,3 +265,29 @@ func TestDate_AsNullable(t *testing.T) {
 		})
 	}
 }
+
+func TestDate_String(t *testing.T) {
+	tests := []struct {
+		name string
+		d    Date
+		want string
+	}{
+		{
+			name: "is empty",
+			d:    Date{},
+			want: "0001-01-01",
+		},
+		{
+			name: "is not empty",
+			d:    New(2020, 8, 17),
+			want: "2020-08-17",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.d.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
