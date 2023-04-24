@@ -2,8 +2,9 @@ package xconfig
 
 import (
 	"fmt"
-	"github.com/subosito/gotenv"
 	"strings"
+
+	"github.com/subosito/gotenv"
 
 	"github.com/spf13/viper"
 )
@@ -18,7 +19,8 @@ func New[T any]() *T {
 	// Read config file
 	viper.SetConfigName("config") // name of config file (without extension)
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./config")
+	viper.AddConfigPath("./configs")
+	viper.AddConfigPath("./config") // deprecated
 
 	if err := viper.ReadInConfig(); err != nil { // Handle errors reading the config file
 		panic(fmt.Errorf("fatal error config file: %w", err))
