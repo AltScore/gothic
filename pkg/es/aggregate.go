@@ -2,6 +2,7 @@ package es
 
 import (
 	"fmt"
+
 	"github.com/AltScore/gothic/pkg/ids"
 
 	"github.com/AltScore/gothic/pkg/es/event"
@@ -152,6 +153,11 @@ func (a *AggregateBase[SS]) NewMetadata(eventType string) Metadata {
 		eventType,
 		a.version+1,
 	)
+}
+
+// Events returns a copy of the events
+func (a *AggregateBase[SS]) Events() []event.Event {
+	return append([]event.Event{}, a.events...)
 }
 
 func (a *AggregateBase[SS]) GetNewEvents() []event.Event {
