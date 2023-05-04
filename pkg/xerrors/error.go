@@ -19,6 +19,7 @@ const (
 	UnauthorizedReason     = "unauthorized" // Not authenticated
 	ForbiddenReason        = "forbidden"
 	InvalidEventTypeReason = "invalid event type"
+	ConditionNotMetReason  = "condition not met"
 )
 
 type Error struct {
@@ -92,6 +93,15 @@ func NewFoundManyError(entity string, keyFmt string, args ...interface{}) Error 
 		Key:        fmt.Sprintf(keyFmt, args...),
 		Reason:     FoundManyReason,
 		httpStatus: 500,
+	}
+}
+
+func NewConditionNotMetError(entity string, keyFmt string, args ...interface{}) Error {
+	return Error{
+		Entity:     entity,
+		Key:        fmt.Sprintf(keyFmt, args...),
+		Reason:     ConditionNotMetReason,
+		httpStatus: 409,
 	}
 }
 
