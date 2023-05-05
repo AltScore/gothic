@@ -113,13 +113,13 @@ func (m *TestManager) exec() {
 		e = echo.New()
 	}
 
+	m.setRoutes(e)
+
 	req := httptest.NewRequest(m.method, m.path, bytes.NewReader(m.body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	m.rec = httptest.NewRecorder()
 
 	c := e.NewContext(req, m.rec)
-
-	m.setRoutes(e)
 
 	for name, value := range m.context {
 		c.Set(name, value)
