@@ -1,12 +1,13 @@
 package xapi
 
 import (
+	"net/http"
+	"net/url"
+
 	"github.com/AltScore/gothic/pkg/ids"
 	"github.com/AltScore/gothic/pkg/xerrors"
 	"github.com/AltScore/gothic/pkg/xuser"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"net/url"
 )
 
 const UserCtxKey = "x-user"
@@ -63,7 +64,7 @@ func RealUserFromContext(c echo.Context) (xuser.User, bool) {
 	return UserFromContext(c)
 }
 
-func ParseParamId(c echo.Context, name string) (ids.ID, error) {
+func ParseParamID(c echo.Context, name string) (ids.ID, error) {
 	idStr, err := url.PathUnescape(c.Param(name))
 
 	if err != nil {
@@ -72,5 +73,5 @@ func ParseParamId(c echo.Context, name string) (ids.ID, error) {
 		return ids.Empty(), echo.NewHTTPError(http.StatusBadRequest, name+" is required")
 	}
 
-	return ids.ParseId(idStr)
+	return ids.ParseID(idStr)
 }

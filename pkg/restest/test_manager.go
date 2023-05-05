@@ -192,7 +192,7 @@ func (g *GivenWrapper) Context(name string, value interface{}) *GivenWrapper {
 }
 
 // PathParam sets a value in the request context under the given name. Used to store entity id, etc.
-// Deprecated, use Module() and CallPath() instead
+// Deprecated, use Module() and CallsPath() instead
 func (g *GivenWrapper) PathParam(name string, value string) *GivenWrapper {
 
 	idx, found := slices.Index2(g.tm.paramNames, name)
@@ -224,7 +224,7 @@ func (g *GivenWrapper) Module(module xapi.Module) *GivenWrapper {
 }
 
 // Calls execute the request to the handler. A proper initialized echo.Context is build and used as parameter
-// Deprecated, use Module() and CallPath() instead
+// Deprecated, use Module() and CallsPath() instead
 func (w *WhenWrapper) Calls(handler func(c echo.Context) error) *WhenWrapper {
 	w.tm.handler = handler
 	w.tm.exec()
@@ -232,14 +232,14 @@ func (w *WhenWrapper) Calls(handler func(c echo.Context) error) *WhenWrapper {
 }
 
 // PerformTheCall
-// Deprecated, use Module() and CallPath() instead
+// Deprecated, use Module() and CallsPath() instead
 func (w *WhenWrapper) PerformTheCall() *WhenWrapper {
 	w.tm.exec()
 	return w
 }
 
-func (w *WhenWrapper) CallsPath(path string) *WhenWrapper {
-	w.tm.path = path
+func (w *WhenWrapper) CallsPath(pathFmt string, args ...any) *WhenWrapper {
+	w.tm.path = fmt.Sprintf(pathFmt, args...)
 	w.tm.exec()
 	return w
 }

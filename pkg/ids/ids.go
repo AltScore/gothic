@@ -42,7 +42,7 @@ func (id ID) AsUUID() uuid.UUID {
 	return u
 }
 
-func ParseId(id string) (ID, error) {
+func ParseID(id string) (ID, error) {
 	if rawId, err := uuid.Parse(id); err == nil {
 		return ID(rawId.String()), nil
 	} else {
