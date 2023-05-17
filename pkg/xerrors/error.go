@@ -3,178 +3,104 @@ package xerrors
 import (
 	"errors"
 	"fmt"
+	"net/http"
 )
 
-const (
-	NotFoundReason         = "not found for"
-	DuplicateReason        = "duplicate"
-	FoundManyReason        = "found many but one expected"
-	TypeAssertionReason    = "type assertion failed"
-	UnknownReason          = "unknown error found"
-	InvalidArgumentReason  = "invalid argument"
-	InvalidStateReason     = "invalid state"
-	ClientCanceledReason   = "client cancelled"
-	TimeoutReason          = "timeout"
-	GatewayReason          = "gateway"
-	UnauthorizedReason     = "unauthorized" // Not authenticated
-	ForbiddenReason        = "forbidden"
-	InvalidEventTypeReason = "invalid event type"
-	ConditionNotMetReason  = "condition not met"
-)
-
-type Error struct {
-	Entity     string
-	Key        string
-	Reason     string
-	Details    string
+type HttpError struct {
+	msg        string
 	httpStatus int
 }
 
-func (e Error) Error() string {
-	if e.Details != "" {
-		return fmt.Sprintf("%s %s, %s: %s", e.Entity, e.Key, e.Reason, e.Details)
+func New(msg string, httpStatus int) error {
+	return HttpError{
+		msg:        msg,
+		httpStatus: httpStatus,
 	}
-	return fmt.Sprintf("%s %s, %s", e.Entity, e.Reason, e.Key)
 }
 
-func (e Error) Unwrap() error {
-	return nil
+func (e HttpError) Error() string {
+	return e.msg
 }
 
-func (e Error) Type() string {
-	return e.Reason
-}
-
-func (e Error) HTTPStatus() int {
+func (e HttpError) HTTPStatus() int {
 	return e.httpStatus
 }
 
-func NewUnknownError(entity string, details string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     UnknownReason,
-		Details:    details,
-		httpStatus: 500,
-	}
+func (e HttpError) Unwrap() error {
+	return nil
 }
 
-func NewInvalidArgumentError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     InvalidArgumentReason,
-		httpStatus: 400,
-	}
+var (
+	ErrNotFound         = New("not found for", http.StatusNotFound)
+	ErrDuplicate        = New("duplicate", http.StatusConflict)
+	ErrFoundMany        = New("found many but one expected", http.StatusConflict)
+	ErrTypeAssertion    = New("type assertion failed", http.StatusInternalServerError)
+	ErrUnknown          = New("unknown error found", http.StatusInternalServerError)
+	ErrInvalidArgument  = New("invalid argument", http.StatusBadRequest)
+	ErrInvalidState     = New("invalid state", http.StatusConflict)
+	ErrClientCanceled   = New("client cancelled", 460)
+	ErrTimeout          = New("timeout", http.StatusGatewayTimeout)
+	ErrGateway          = New("gateway", http.StatusBadGateway)
+	ErrUnauthorized     = New("unauthorized", http.StatusUnauthorized) // Not authenticated,
+	ErrForbidden        = New("forbidden", http.StatusForbidden)       // Not enough permissions
+	ErrInvalidEventType = New("invalid event type", http.StatusInternalServerError)
+	ErrConditionNotMet  = New("condition not met", http.StatusBadGateway)
+)
+
+func NewUnknownError(entity string, details string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s: %s", ErrUnknown, entity, fmt.Sprintf(keyFmt, args...), details)
 }
 
-func NewNotFoundError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     NotFoundReason,
-		httpStatus: 404,
-	}
+func NewInvalidArgumentError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrInvalidArgument, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewDuplicateError(entity string, details string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     DuplicateReason,
-		Details:    details,
-		httpStatus: 409,
-	}
+func NewNotFoundError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrNotFound, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewFoundManyError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     FoundManyReason,
-		httpStatus: 500,
-	}
+func NewDuplicateError(entity string, details string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s: %s", ErrDuplicate, entity, fmt.Sprintf(keyFmt, args...), details)
 }
 
-func NewConditionNotMetError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     ConditionNotMetReason,
-		httpStatus: 409,
-	}
+func NewFoundManyError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrFoundMany, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewTypeAssertionError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     TypeAssertionReason,
-		httpStatus: 500,
-	}
+func NewConditionNotMetError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrConditionNotMet, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewTimeoutError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     TimeoutReason,
-		httpStatus: 504,
-	}
+func NewTypeAssertionError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrTypeAssertion, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewGatewayError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     GatewayReason,
-		httpStatus: 502,
-	}
+func NewTimeoutError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrTimeout, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewCancellationError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     ClientCanceledReason,
-		httpStatus: 499,
-	}
+func NewGatewayError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrGateway, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewInvalidStateError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     InvalidStateReason,
-		httpStatus: 409,
-	}
+func NewCancellationError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrClientCanceled, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewInvalidEventTypeError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     InvalidEventTypeReason,
-		httpStatus: 500,
-	}
+func NewInvalidStateError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrInvalidState, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewForbiddenError(entity string, keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     entity,
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     ForbiddenReason,
-		httpStatus: 403,
-	}
+func NewInvalidEventTypeError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrInvalidEventType, entity, fmt.Sprintf(keyFmt, args...))
 }
 
-func NewUnauthorized(keyFmt string, args ...interface{}) Error {
-	return Error{
-		Entity:     "user",
-		Key:        fmt.Sprintf(keyFmt, args...),
-		Reason:     UnauthorizedReason,
-		httpStatus: 401,
-	}
+func NewForbiddenError(entity string, keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s: %s", ErrForbidden, entity, fmt.Sprintf(keyFmt, args...))
+}
+
+func NewUnauthorized(keyFmt string, args ...interface{}) error {
+	return fmt.Errorf("%w: %s", ErrUnauthorized, fmt.Sprintf(keyFmt, args...))
 }
 
 func IsNotFound(err error) bool {
@@ -182,10 +108,5 @@ func IsNotFound(err error) bool {
 		return false
 	}
 
-	var e Error
-
-	if errors.As(err, &e) {
-		return e.Reason == NotFoundReason
-	}
-	return false
+	return errors.Is(err, ErrNotFound)
 }
