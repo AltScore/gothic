@@ -37,14 +37,14 @@ var (
 	ErrTypeAssertion    = New("type assertion failed", http.StatusInternalServerError)
 	ErrUnknown          = New("unknown error found", http.StatusInternalServerError)
 	ErrInvalidArgument  = New("invalid argument", http.StatusBadRequest)
-	ErrInvalidState     = New("invalid state", http.StatusConflict)
+	ErrInvalidState     = New("invalid state", http.StatusPreconditionFailed)
 	ErrClientCanceled   = New("client cancelled", 460)
 	ErrTimeout          = New("timeout", http.StatusGatewayTimeout)
 	ErrGateway          = New("gateway", http.StatusBadGateway)
 	ErrUnauthorized     = New("unauthorized", http.StatusUnauthorized) // Not authenticated,
 	ErrForbidden        = New("forbidden", http.StatusForbidden)       // Not enough permissions
 	ErrInvalidEventType = New("invalid event type", http.StatusInternalServerError)
-	ErrConditionNotMet  = New("condition not met", http.StatusBadGateway)
+	ErrConditionNotMet  = New("condition not met", http.StatusPreconditionFailed)
 )
 
 func NewUnknownError(entity string, details string, keyFmt string, args ...interface{}) error {
