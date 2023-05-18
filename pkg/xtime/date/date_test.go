@@ -291,3 +291,38 @@ func TestDate_String(t *testing.T) {
 		})
 	}
 }
+
+func TestDate_Sub(t *testing.T) {
+	tests := []struct {
+		name string
+		from Date
+		args Date
+		want int
+	}{
+		{
+			name: "is before",
+			from: New(2020, 1, 1),
+			args: New(2020, 1, 2),
+			want: -1,
+		},
+		{
+			name: "is after",
+			from: New(2020, 1, 2),
+			args: New(2020, 1, 1),
+			want: 1,
+		},
+		{
+			name: "is equal",
+			from: New(2020, 1, 1),
+			args: New(2020, 1, 1),
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.from.Sub(tt.args); got != tt.want {
+				t.Errorf("Sub() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -89,6 +89,11 @@ func (d Date) Add(duration time.Duration) Date {
 	return From(d.Time().Add(duration))
 }
 
+// Sub returns the number of days between this date and the other date.
+func (d Date) Sub(other Date) int {
+	return int(d.Time().Sub(other.Time()).Hours() / 24)
+}
+
 // IsZero returns true if the date is the zero value.  January 1, year 1, UTC
 func (d Date) IsZero() bool {
 	return d.Time().IsZero()
@@ -106,17 +111,17 @@ func (d Date) Weekday() time.Weekday {
 
 // After reports whether the date is after the other.
 func (d Date) After(other Date) bool {
-	return d.Time().After(other.Time())
+	return d.IsAfter(other)
 }
 
 // Before reports whether the date is before the other.
 func (d Date) Before(other Date) bool {
-	return d.Time().Before(other.Time())
+	return d.IsBefore(other)
 }
 
 // Equal reports whether the date is equal to the other.
 func (d Date) Equal(other Date) bool {
-	return d.Time().Equal(other.Time())
+	return d.IsEqual(other)
 }
 
 func (d Date) NonZeroMin(other Date) Date {
@@ -129,6 +134,7 @@ func (d Date) NonZeroMin(other Date) Date {
 	return d.Min(other)
 }
 
+// Min returns the earlier of the two dates.
 func (d Date) Min(other Date) Date {
 	if d.Before(other) {
 		return d
@@ -136,9 +142,30 @@ func (d Date) Min(other Date) Date {
 	return other
 }
 
+// AsNullable returns the date as a nullable date (pointer to).
 func (d Date) AsNullable() *Date {
 	if d.IsZero() {
 		return nil
 	}
 	return &d
+}
+
+// IsBefore reports whether the date is before the other date.
+func (d Date) IsBefore(date Date) bool {
+	return d.Time().Before(date.Time())
+}
+
+// IsAfter reports whether the date is after the other date.
+func (d Date) IsAfter(date Date) bool {
+	return d.Time().After(date.Time())
+}
+
+// IsEqual reports whether the date is equal to the other date.
+func (d Date) IsEqual(date Date) bool {
+	return d.Time().Equal(date.Time())
+}
+
+// IsBetween reports whether the date is between the start and end dates (not inclusive).
+func (d Date) IsBetween(start, end Date) bool {
+	return d.IsAfter(start) && d.IsBefore(end)
 }
