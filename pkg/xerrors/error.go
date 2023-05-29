@@ -53,6 +53,29 @@ var (
 	ErrConditionNotMet  = New("condition-not-met", "condition not met", http.StatusPreconditionFailed)
 )
 
+func FromHttpStatus(status int) error {
+	switch status {
+	case http.StatusNotFound:
+		return ErrNotFound
+	case http.StatusBadRequest:
+		return ErrInvalidArgument
+	case http.StatusConflict:
+		return ErrInvalidState
+	case http.StatusPreconditionFailed:
+		return ErrConditionNotMet
+	case http.StatusBadGateway:
+		return ErrGateway
+	case http.StatusUnauthorized:
+		return ErrUnauthorized
+	case http.StatusForbidden:
+		return ErrForbidden
+	case http.StatusGatewayTimeout:
+		return ErrTimeout
+	default:
+		return ErrUnknown
+	}
+}
+
 func NewUnknownError(entity string, details string, keyFmt string, args ...interface{}) error {
 	return fmt.Errorf("%w: %s: %s: %s", ErrUnknown, entity, fmt.Sprintf(keyFmt, args...), details)
 }

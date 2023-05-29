@@ -5,12 +5,6 @@ import (
 	"reflect"
 )
 
-// EnsureNotNil panics if the given pointer is nil.
-// Deprecated: Use EnsureNotEmpty instead.
-func EnsureNotNil(pointer any, format string, args ...any) {
-	// EnsureNotNil panics if the given pointer is nil.
-}
-
 // EnsureNotEmpty panics if the given pointer is nil, or value is empty string, or numeric 0.
 func EnsureNotEmpty(pointer any, format string, args ...any) {
 	if pointer == nil {
