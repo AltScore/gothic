@@ -7,15 +7,21 @@ import (
 )
 
 type HttpError struct {
+	code       string
 	msg        string
 	httpStatus int
 }
 
-func New(msg string, httpStatus int) error {
+func New(code string, msg string, httpStatus int) error {
 	return HttpError{
+		code:       code,
 		msg:        msg,
 		httpStatus: httpStatus,
 	}
+}
+
+func (e HttpError) Code() string {
+	return e.code
 }
 
 func (e HttpError) Error() string {
@@ -31,20 +37,20 @@ func (e HttpError) Unwrap() error {
 }
 
 var (
-	ErrNotFound         = New("not found for", http.StatusNotFound)
-	ErrDuplicate        = New("duplicate", http.StatusConflict)
-	ErrFoundMany        = New("found many but one expected", http.StatusConflict)
-	ErrTypeAssertion    = New("type assertion failed", http.StatusInternalServerError)
-	ErrUnknown          = New("unknown error found", http.StatusInternalServerError)
-	ErrInvalidArgument  = New("invalid argument", http.StatusBadRequest)
-	ErrInvalidState     = New("invalid state", http.StatusPreconditionFailed)
-	ErrClientCanceled   = New("client cancelled", 460)
-	ErrTimeout          = New("timeout", http.StatusGatewayTimeout)
-	ErrGateway          = New("gateway", http.StatusBadGateway)
-	ErrUnauthorized     = New("unauthorized", http.StatusUnauthorized) // Not authenticated,
-	ErrForbidden        = New("forbidden", http.StatusForbidden)       // Not enough permissions
-	ErrInvalidEventType = New("invalid event type", http.StatusInternalServerError)
-	ErrConditionNotMet  = New("condition not met", http.StatusPreconditionFailed)
+	ErrNotFound         = New("not-found", "not found for", http.StatusNotFound)
+	ErrDuplicate        = New("duplicate", "duplicate", http.StatusConflict)
+	ErrFoundMany        = New("found-many", "found many but one expected", http.StatusConflict)
+	ErrTypeAssertion    = New("invalid-type", "type assertion failed", http.StatusInternalServerError)
+	ErrUnknown          = New("unknown", "unknown error found", http.StatusInternalServerError)
+	ErrInvalidArgument  = New("invalid-argument", "invalid argument", http.StatusBadRequest)
+	ErrInvalidState     = New("invalid-state", "invalid state", http.StatusPreconditionFailed)
+	ErrClientCanceled   = New("cancelled", "client cancelled", 460)
+	ErrTimeout          = New("timeout", "timeout", http.StatusGatewayTimeout)
+	ErrGateway          = New("gateway", "gateway", http.StatusBadGateway)
+	ErrUnauthorized     = New("unauthorized", "user did not provided credentials", http.StatusUnauthorized)  // Not authenticated,
+	ErrForbidden        = New("forbidden", "user is not allowed to perform operation", http.StatusForbidden) // Not enough permissions
+	ErrInvalidEventType = New("invalid-event-type", "invalid event type", http.StatusInternalServerError)
+	ErrConditionNotMet  = New("condition-not-met", "condition not met", http.StatusPreconditionFailed)
 )
 
 func NewUnknownError(entity string, details string, keyFmt string, args ...interface{}) error {
