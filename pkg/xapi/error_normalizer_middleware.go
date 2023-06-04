@@ -15,7 +15,6 @@ type HTTPStatusProvider interface {
 
 type fieldError struct {
 	Tag             string
-	FailedTag       string
 	Namespace       string
 	StructNamespace string
 	Field           string

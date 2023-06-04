@@ -41,7 +41,6 @@ func TestErrorNormalizerMiddleware(t *testing.T) {
 	                "code": "validation_error",
 	                "details": [
 	                    {
-	                        "FailedTag": "required",
 	                        "Field": "SomeField",
 	                        "Namespace": "testStruct.SomeField",
 	                        "Param": "",
@@ -61,8 +60,7 @@ func TestErrorNormalizerMiddleware(t *testing.T) {
                 "error": {
                     "code": "validation_error",
                     "details": [        
-                        {
-                            "FailedTag": "required",    
+                        {   
                             "Field": "SomeField",
                             "Namespace": "testStruct.SomeField",    
                             "Param": "",
@@ -70,8 +68,7 @@ func TestErrorNormalizerMiddleware(t *testing.T) {
                             "Tag": "required",  
                             "Value": "" 
                         },
-                        {   
-                            "FailedTag": "gt",      
+                        {       
                             "Field": "ANumber", 
                             "Namespace": "testStruct.ANumber",  
                             "Param": "5",   
