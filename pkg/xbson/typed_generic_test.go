@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
-	"gopkg.in/yaml.v3"
 )
 
 type sampleType string
@@ -55,7 +54,7 @@ func Test_TypedGeneric_can_encode_and_decode(t *testing.T) {
 	// When it is encoded
 	bytes, err := bson.MarshalWithRegistry(registry, &expected)
 
-	dumpBson(t, "-- Sample value", bytes)
+	Dump(t, "-- Sample value", bytes)
 
 	// Then it should not fail
 	require.NoError(t, err)
@@ -97,7 +96,7 @@ func Test_TypedGeneric_can_be_embedded(t *testing.T) {
 	// When it is encoded
 	bytes, err := bson.MarshalWithRegistry(registry, &expected)
 
-	dumpBson(t, "-- Sample value", bytes)
+	Dump(t, "-- Sample value", bytes)
 
 	// Then it should not fail
 	require.NoError(t, err)
@@ -143,7 +142,7 @@ func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 	// When it is encoded
 	bytes, err := bson.MarshalWithRegistry(registry, &expected)
 
-	dumpBson(t, "-- Sample value", bytes)
+	Dump(t, "-- Sample value", bytes)
 
 	// Then it should not fail
 	require.NoError(t, err)
@@ -160,22 +159,4 @@ func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 
 	// And it should be the same as the original
 	require.Equal(t, expected, actual)
-}
-
-func dumpBson(t *testing.T, title string, bytes []byte) {
-	var bsonMap bson.M
-
-	err := bson.Unmarshal(bytes, &bsonMap)
-	require.NoError(t, err)
-
-	// Convert object to YAML
-	yamlBytes, err := yaml.Marshal(bsonMap)
-
-	require.NoError(t, err)
-
-	yamlString := string(yamlBytes)
-	fmt.Println(title)
-	fmt.Println(yamlString)
-
-	fmt.Println(bsonMap)
 }
