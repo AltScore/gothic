@@ -43,8 +43,8 @@ var _ bsoncodec.ValueEncoder = (*TypedGenericCodex)(nil)
 // It allows the decoderEncoder to be registered with a bsoncodec.RegistryBuilder
 func (t *TypedGenericCodex) Register(builder *bsoncodec.RegistryBuilder) {
 
-	builder.RegisterTypeDecoder(t.valueType, t)
-	builder.RegisterTypeEncoder(t.valueType, t)
+	builder.RegisterHookEncoder(t.valueType, t)
+	builder.RegisterHookDecoder(t.valueType, t)
 }
 
 type wrapper struct {

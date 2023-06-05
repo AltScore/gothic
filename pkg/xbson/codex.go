@@ -41,8 +41,10 @@ func (d *decoderEncoder[Entity, Dto, Base]) Register(builder *bsoncodec.Registry
 
 	baseType := reflect.TypeOf((*Base)(nil)).Elem()
 
-	builder.RegisterTypeDecoder(entityType, d)
 	builder.RegisterTypeEncoder(baseType, d)
+
+	builder.RegisterHookDecoder(entityType, d)
+	// builder.RegisterTypeDecoder(baseType, d)
 }
 
 // EncodeValue implements the bsoncodec.ValueEncoder interface. It encodes a Go value into a bson value
@@ -72,6 +74,16 @@ func (d *decoderEncoder[Entity, Dto, Base]) DecodeValue(ctx bsoncodec.DecodeCont
 		return err
 	}
 
-	value.Set(reflect.ValueOf(d.fromDto(dto)))
+	fromDto := d.fromDto(dto)
+
+	elem := reflect.ValueOf(fromDto).Elem()
+
+	if elem.Type().Kind() != reflect.Ptr {
+		value.Set(elem.Addr())
+	} else {
+		// value of type principal.principal is not assignable to type principal.Principal
+		value.Set(elem)
+	}
+
 	return nil
 }
