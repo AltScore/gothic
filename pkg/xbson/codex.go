@@ -78,7 +78,9 @@ func (d *decoderEncoder[Entity, Dto, Base]) DecodeValue(ctx bsoncodec.DecodeCont
 
 	elem := reflect.ValueOf(fromDto).Elem()
 
-	if elem.Type().Kind() != reflect.Ptr {
+	if elem.Type() == value.Type() {
+		value.Set(elem)
+	} else if elem.Type().Kind() != reflect.Ptr {
 		value.Set(elem.Addr())
 	} else {
 		// value of type principal.principal is not assignable to type principal.Principal
