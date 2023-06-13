@@ -1,6 +1,7 @@
 package date
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -169,3 +170,10 @@ func (d Date) IsEqual(date Date) bool {
 func (d Date) IsBetween(start, end Date) bool {
 	return d.IsAfter(start) && d.IsBefore(end)
 }
+
+// GoString returns a string representation of the date in Go syntax.
+func (d Date) GoString() string {
+	return fmt.Sprintf("date.Date(%d, %d, %d)", d.Year(), d.Month(), d.Day())
+}
+
+var _ fmt.GoStringer = Date{}
