@@ -2,6 +2,7 @@ package ids
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/totemcaf/gollections/slices"
@@ -60,6 +61,13 @@ func FromBytes(bytes []byte) (ID, error) {
 	} else {
 		return nullId, err
 	}
+}
+
+// NewID computes a UUID string hashing the provided values
+func NewID(values ...any) ID {
+	str := fmt.Sprintf("%v", values)
+	sha1Uuid := uuid.NewSHA1(uuid.NameSpaceOID, []byte(str))
+	return FromUUID(sha1Uuid)
 }
 
 func AllToString(ids []ID) []string {
