@@ -18,7 +18,7 @@ func (s sampleType) String() string {
 var _ fmt.Stringer = sampleType("")
 
 type sampleTypedGeneric interface {
-	Typed
+	T() string
 }
 
 type sampleTypedOne struct {
@@ -41,8 +41,11 @@ func Test_TypedGeneric_can_encode_and_decode(t *testing.T) {
 
 	// Given a bson registry
 	builder := bson.NewRegistryBuilder()
-	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric]()
-	sampleCodex.RegisterType(func() Typed { return &sampleTypedOne{} })
+	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric](
+		func(t sampleTypedGeneric) string { return t.T() },
+	)
+
+	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedOne{} })
 
 	sampleCodex.Register(builder)
 
@@ -81,8 +84,10 @@ func Test_TypedGeneric_can_be_embedded(t *testing.T) {
 
 	// Given a bson registry
 	builder := bson.NewRegistryBuilder()
-	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric]()
-	sampleCodex.RegisterType(func() Typed { return &sampleTypedOne{} })
+	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric](
+		func(t sampleTypedGeneric) string { return t.T() },
+	)
+	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedOne{} })
 
 	sampleCodex.Register(builder)
 
@@ -123,9 +128,11 @@ func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 
 	// Given a bson registry
 	builder := bson.NewRegistryBuilder()
-	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric]()
-	sampleCodex.RegisterType(func() Typed { return &sampleTypedOne{} })
-	sampleCodex.RegisterType(func() Typed { return &sampleTypedTwo{} })
+	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric](
+		func(t sampleTypedGeneric) string { return t.T() },
+	)
+	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedOne{} })
+	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedTwo{} })
 
 	sampleCodex.Register(builder)
 
