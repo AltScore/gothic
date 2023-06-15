@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDate_After(t *testing.T) {
@@ -326,3 +328,20 @@ func TestDate_Sub(t *testing.T) {
 		})
 	}
 }
+
+func Test_FromProto_builds_date_with_correct_values(t *testing.T) {
+	date := FromProto(testProto{})
+
+	assert.Equal(t, 1963, date.Year())
+	assert.Equal(t, time.November, date.Month())
+	assert.Equal(t, 29, date.Day())
+}
+
+type testProto struct{}
+
+var _ ProtoDate = (*testProto)(nil)
+
+func (t testProto) GetYear() int32  { return 1963 }
+func (t testProto) GetMonth() int32 { return 11 }
+
+func (t testProto) GetDay() int32 { return 29 }
