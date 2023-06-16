@@ -19,6 +19,7 @@ type GetType[Typed any] func(Typed) string
 // The method T() is used to det/ermine the type of the document.
 type TypedGenericCodex[Typed any] struct {
 	factoryByType map[string]func() Typed
+	toDtoByType   map[string]func(Typed) interface{}
 	getType       GetType[Typed]
 	valueType     reflect.Type
 	lock          sync.RWMutex
@@ -29,6 +30,7 @@ var _ EncoderDecoder = (*TypedGenericCodex[string])(nil)
 func NewTypedGenericCodex[Typed any](getType GetType[Typed]) *TypedGenericCodex[Typed] {
 	return &TypedGenericCodex[Typed]{
 		factoryByType: make(map[string]func() Typed),
+		toDtoByType:   make(map[string]func(Typed) interface{}),
 		getType:       getType,
 		valueType:     reflect.TypeOf((*Typed)(nil)).Elem(), // The type of the interface
 	}
@@ -51,12 +53,13 @@ type wrapper struct {
 }
 
 // RegisterType registers a factory function for a given type name
-func (t *TypedGenericCodex[Typed]) RegisterType(factory func() Typed) {
+func (t *TypedGenericCodex[Typed]) RegisterType(factory func() Typed, toDto func(Typed) interface{}) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
 	type_ := t.getType(factory())
 	t.factoryByType[type_] = factory
+	t.toDtoByType[type_] = toDto
 }
 
 // LookupType returns the factory function for a given type name
@@ -71,14 +74,23 @@ func (t *TypedGenericCodex[Typed]) LookupType(typeName string) (func() Typed, bo
 // EncodeValue implements the bsoncodec.ValueEncoder interface
 func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bsoncodec.EncodeContext, writer bsonrw.ValueWriter, value reflect.Value) error {
 	// Encode the original underlying value (it is the struct, not the interface)
-	bytes, err := bson.Marshal(value.Interface())
+	typed, ok := value.Interface().(Typed)
+	if !ok {
+		return fmt.Errorf("value does not implement Typed interface")
+	}
+
+	typeName := t.getType(typed)
+
+	toDto := t.toDtoByType[typeName]
+	dto := toDto(typed)
+	bytes, err := bson.MarshalWithRegistry(ctx.Registry, dto) // use same registry
 
 	if err != nil {
 		return err
 	}
 
 	// Wrap the original value with its type
-	v := wrapper{T: t.getType(value.Interface().(Typed)), V: bytes}
+	v := wrapper{T: typeName, V: bytes}
 
 	// Encode the wrapped value
 	encoder, err := ctx.Registry.LookupEncoder(reflect.TypeOf(v))
