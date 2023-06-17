@@ -14,25 +14,29 @@ import (
 // It allows a generic type to be encoded/decoded to/from a bson document.
 type GetType[Typed any] func(Typed) string
 
+type subtype[Typed any] struct {
+	factory func() Typed
+	toDto   func(Typed) interface{}
+	fromDto func(interface{}) Typed
+}
+
 // TypedGenericCodex is a generic encoder/decoder for a family of types that implement the Typed interface
 // It allows a generic type to be encoded/decoded to/from a bson document.
 // The method T() is used to det/ermine the type of the document.
 type TypedGenericCodex[Typed any] struct {
-	factoryByType map[string]func() Typed
-	toDtoByType   map[string]func(Typed) interface{}
-	getType       GetType[Typed]
-	valueType     reflect.Type
-	lock          sync.RWMutex
+	subtypes  map[string]subtype[Typed]
+	getType   GetType[Typed]
+	valueType reflect.Type
+	lock      sync.RWMutex
 }
 
 var _ EncoderDecoder = (*TypedGenericCodex[string])(nil)
 
 func NewTypedGenericCodex[Typed any](getType GetType[Typed]) *TypedGenericCodex[Typed] {
 	return &TypedGenericCodex[Typed]{
-		factoryByType: make(map[string]func() Typed),
-		toDtoByType:   make(map[string]func(Typed) interface{}),
-		getType:       getType,
-		valueType:     reflect.TypeOf((*Typed)(nil)).Elem(), // The type of the interface
+		subtypes:  make(map[string]subtype[Typed]),
+		getType:   getType,
+		valueType: reflect.TypeOf((*Typed)(nil)).Elem(), // The type of the interface
 	}
 }
 
@@ -53,22 +57,35 @@ type wrapper struct {
 }
 
 // RegisterType registers a factory function for a given type name
-func (t *TypedGenericCodex[Typed]) RegisterType(factory func() Typed, toDto func(Typed) interface{}) {
+func (t *TypedGenericCodex[Typed]) RegisterType(
+	factory func() Typed,
+	toDto func(Typed) interface{},
+	fromDto func(interface{}) Typed,
+) {
+
+	// check if the functions convert correctly
+	value := factory()
+	dto := toDto(value)
+	converted := fromDto(dto)
+
+	if !reflect.DeepEqual(value, converted) {
+		panic(fmt.Errorf("toDto and fromDto functions do not convert correctly"))
+	}
+
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
 	type_ := t.getType(factory())
-	t.factoryByType[type_] = factory
-	t.toDtoByType[type_] = toDto
+	t.subtypes[type_] = subtype[Typed]{factory: factory, toDto: toDto, fromDto: fromDto}
 }
 
-// LookupType returns the factory function for a given type name
-func (t *TypedGenericCodex[Typed]) LookupType(typeName string) (func() Typed, bool) {
+// lookupSubtype returns the factory function for a given type name
+func (t *TypedGenericCodex[Typed]) lookupSubtype(typeName string) (subtype[Typed], bool) {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
 
-	factory, found := t.factoryByType[typeName]
-	return factory, found
+	subtype, found := t.subtypes[typeName]
+	return subtype, found
 }
 
 // EncodeValue implements the bsoncodec.ValueEncoder interface
@@ -81,8 +98,13 @@ func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bsoncodec.EncodeContext, writ
 
 	typeName := t.getType(typed)
 
-	toDto := t.toDtoByType[typeName]
-	dto := toDto(typed)
+	st, found := t.lookupSubtype(typeName)
+
+	if !found {
+		return fmt.Errorf("type %s not registered", typeName)
+	}
+
+	dto := st.toDto(typed)
 	bytes, err := bson.MarshalWithRegistry(ctx.Registry, dto) // use same registry
 
 	if err != nil {
@@ -116,15 +138,21 @@ func (t *TypedGenericCodex[Typed]) DecodeValue(ctx bsoncodec.DecodeContext, read
 	}
 
 	// Create an instance of the original underlying value type
-	factory, found := t.LookupType(v.T)
+	st, found := t.lookupSubtype(v.T)
 
 	if !found {
 		return fmt.Errorf("unknown type: %s", v.T)
 	}
 
 	// Decode the original underlying value
-	result := factory()
-	err = bson.Unmarshal(v.V, result)
+	result := st.factory()
+
+	dto := st.toDto(result)
+
+	err = bson.UnmarshalWithRegistry(ctx.Registry, v.V, dto)
+
+	result = st.fromDto(dto)
+
 	if err != nil {
 		return err
 	}

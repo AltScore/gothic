@@ -51,8 +51,10 @@ func Test_TypedGeneric_can_encode_and_decode(t *testing.T) {
 		func(t sampleTypedGeneric) string { return t.T() },
 	)
 
-	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedOne{} },
+	sampleCodex.RegisterType(
+		func() sampleTypedGeneric { return &sampleTypedOne{} },
 		func(t sampleTypedGeneric) interface{} { return (*sampleTypedOneDto)(t.(*sampleTypedOne)) },
+		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedOne)(dto.(*sampleTypedOneDto)) },
 	)
 
 	sampleCodex.Register(builder)
@@ -98,6 +100,7 @@ func Test_TypedGeneric_can_be_embedded(t *testing.T) {
 	sampleCodex.RegisterType(
 		func() sampleTypedGeneric { return &sampleTypedOne{} },
 		func(t sampleTypedGeneric) interface{} { return (*sampleTypedOneDto)(t.(*sampleTypedOne)) },
+		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedOne)(dto.(*sampleTypedOneDto)) },
 	)
 
 	sampleCodex.Register(builder)
@@ -144,9 +147,11 @@ func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 	)
 	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedOne{} },
 		func(t sampleTypedGeneric) interface{} { return (*sampleTypedOneDto)(t.(*sampleTypedOne)) },
+		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedOne)(dto.(*sampleTypedOneDto)) },
 	)
 	sampleCodex.RegisterType(func() sampleTypedGeneric { return &sampleTypedTwo{} },
 		func(t sampleTypedGeneric) interface{} { return (*sampleTypedTwoDto)(t.(*sampleTypedTwo)) },
+		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedTwo)(dto.(*sampleTypedTwoDto)) },
 	)
 
 	sampleCodex.Register(builder)
