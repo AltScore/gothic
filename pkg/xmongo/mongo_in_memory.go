@@ -157,6 +157,9 @@ func (m *MongoInMemory) connectAndRun(f func() error) error {
 
 // Disconnect stops and removes the container
 func (m *MongoInMemory) Disconnect() {
+	// disconnect mongodb client
+	m.disconnectMongoClient()
+
 	if m.container != nil {
 		m.container.Close()
 	}
@@ -165,9 +168,6 @@ func (m *MongoInMemory) Disconnect() {
 	if err := m.pool.Purge(m.resource); err != nil {
 		log.Printf("Could not purge resource: %s\n", err)
 	}
-
-	// disconnect mongodb client
-	m.disconnectMongoClient()
 
 	m.resource = nil
 	m.pool = nil
