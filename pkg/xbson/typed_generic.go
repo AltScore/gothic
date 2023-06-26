@@ -22,7 +22,7 @@ type subtype[Typed any] struct {
 
 // TypedGenericCodex is a generic encoder/decoder for a family of types that implement the Typed interface
 // It allows a generic type to be encoded/decoded to/from a bson document.
-// The method T() is used to det/ermine the type of the document.
+// The getType function is used to determine the type of the underlying value.
 type TypedGenericCodex[Typed any] struct {
 	subtypes  map[string]subtype[Typed]
 	getType   GetType[Typed]
