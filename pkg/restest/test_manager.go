@@ -132,7 +132,7 @@ func (m *TestManager) exec() {
 	// find the handler for the given path
 
 	if m.handler == nil {
-		e.Router().Find(m.method, m.path, c)
+		e.Router().Find(m.method, req.URL.Path, c)
 		m.handler = c.Handler()
 	}
 
