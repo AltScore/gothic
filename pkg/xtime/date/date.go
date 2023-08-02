@@ -7,6 +7,9 @@ import (
 
 const RFC3339Date = `2006-01-02`
 
+// Empty is the zero value for a date. It is January 1, year 1, UTC.
+var Empty = Date{}
+
 // Date represents a date without time. It is a wrapper around time.Time.
 type Date struct { // as struct until we register the decoder / encoder, if not it uses time.Time decoder
 	t time.Time
