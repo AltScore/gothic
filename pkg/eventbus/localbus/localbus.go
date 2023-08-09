@@ -177,7 +177,7 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 			b.logger.Debug("Error while processing event", zap.Error(err))
 
 			// First callback error is the one that will be returned
-			// TODO: Should all errors be returned? they can be aggregated into a single error
+			// TODO: Should all errors from listeners be returned? they can be aggregated into a single error
 			if envelope.Callback != nil {
 				envelope.Callback(event, err)
 			}
