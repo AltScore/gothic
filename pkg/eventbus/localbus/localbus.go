@@ -3,11 +3,12 @@ package localbus
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
-	"strings"
 )
 
 // Option is a function that configures a localBus
@@ -176,9 +177,9 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 			b.logger.Debug("Error while processing event", zap.Error(err))
 
 			// First callback error is the one that will be returned
-			// TODO: Should all errors be returned? they can be aggregated into a single error
+			// TODO: Should all errors from listeners be returned? they can be aggregated into a single error
 			if envelope.Callback != nil {
-				envelope.Callback(event, envelope.Err)
+				envelope.Callback(event, err)
 			}
 			isCallCallbackPending = false
 		}
