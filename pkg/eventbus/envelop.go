@@ -8,7 +8,6 @@ import (
 // It holds other information that is used by the bus to process the event.
 type EventEnvelope struct {
 	Event      Event
-	Err        error
 	Ctx        context.Context
 	Callback   Callback
 	ShouldWait bool
