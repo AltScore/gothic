@@ -25,10 +25,53 @@ func From(t time.Time) Date {
 	return Date{t.Truncate(24 * time.Hour).UTC()}
 }
 
+// FromInLoc returns a new date from the given time in the given location. The time is truncated to the day.
+func FromInLoc(t time.Time, loc *time.Location) Date {
+	in := t.In(loc)
+	return New(in.Year(), in.Month(), in.Day())
+}
+
+// FromIn returns a new date from the given time in the given location name. The time is truncated to the day.
+func FromIn(t time.Time, locationName string) (Date, error) {
+	loc, err := time.LoadLocation(locationName)
+	if err != nil {
+		return Date{}, fmt.Errorf("invalid location %q: %w", locationName, err)
+	}
+	return FromInLoc(t, loc), nil
+}
+
+// FromInMust returns a new date from the given time in the given location name. The time is truncated to the day.
+func FromInMust(t time.Time, locationName string) Date {
+	d, err := FromIn(t, locationName)
+	if err != nil {
+		panic(err)
+	}
+	return d
+}
+
 // Today returns the current date in UTC. It is a convenience function for From(time.Now()).
 // It is equivalent to the current day at 00:00 time.
 func Today() Date {
 	return From(time.Now())
+}
+
+// TodayInLoc returns the current date in the given location. It is a convenience function for From(time.Now().In(loc)).
+func TodayInLoc(loc *time.Location) Date {
+	return FromInLoc(time.Now(), loc)
+}
+
+// TodayIn returns the current date in the given location name. If locationName is invalid, an error is returned.
+func TodayIn(locationName string) (Date, error) {
+	return FromIn(time.Now(), locationName)
+}
+
+// MustTodayIn returns the current date in the given location name. If locationName is invalid, it panics.
+func MustTodayIn(locationName string) Date {
+	d, err := TodayIn(locationName)
+	if err != nil {
+		panic(err)
+	}
+	return d
 }
 
 // Parse parses a date in RFC3339 format (yyyy-mm-dd).

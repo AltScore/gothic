@@ -345,3 +345,83 @@ func (t testProto) GetYear() int32  { return 1963 }
 func (t testProto) GetMonth() int32 { return 11 }
 
 func (t testProto) GetDay() int32 { return 29 }
+
+func TestFromInLoc(t *testing.T) {
+	mexico := time.FixedZone("America/Mexico_City", -6*60*60)
+	argentina := time.FixedZone("America/Argentina/Buenos_Aires", -3*60*60)
+	chile := time.FixedZone("America/Santiago", -4*60*60)
+	ecuador := time.FixedZone("America/Guayaquil", -5*60*60)
+
+	type args struct {
+		t   time.Time
+		loc *time.Location
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Date
+		wantStr string
+	}{
+		{
+			name: "morning of Argentina in Mexico",
+			args: args{
+				t:   time.Date(2020, 7, 1, 2, 42, 28, 0, argentina),
+				loc: mexico,
+			},
+			want:    New(2020, 6, 30),
+			wantStr: "2020-06-30",
+		},
+		{
+			name: "morning of Ecuador in Mexico",
+			args: args{
+				t:   time.Date(2020, 7, 1, 4, 42, 28, 0, ecuador),
+				loc: mexico,
+			},
+			want:    New(2020, 7, 1),
+			wantStr: "2020-07-01",
+		},
+		{
+			name: "Morning of Ecuador in Chile",
+			args: args{
+				t:   time.Date(2020, 7, 1, 4, 42, 28, 0, ecuador),
+				loc: chile,
+			},
+			want:    New(2020, 7, 1),
+			wantStr: "2020-07-01",
+		},
+		{
+			name: "Morning of UTC in Mexico",
+			args: args{
+				t:   time.Date(2020, 7, 1, 5, 59, 59, 0, time.UTC),
+				loc: mexico,
+			},
+			want:    New(2020, 6, 30),
+			wantStr: "2020-06-30",
+		},
+		{
+			name: "Late Morning of UTC in Mexico",
+			args: args{
+				t:   time.Date(2020, 7, 1, 6, 0, 0, 0, time.UTC),
+				loc: mexico,
+			},
+			want:    New(2020, 7, 1),
+			wantStr: "2020-07-01",
+		},
+		{
+			name: "Later Morning of UTC in Mexico",
+			args: args{
+				t:   time.Date(2020, 7, 1, 6, 0, 0, 1, time.UTC),
+				loc: mexico,
+			},
+			want:    New(2020, 7, 1),
+			wantStr: "2020-07-01",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := FromInLoc(tt.args.t, tt.args.loc)
+			assert.Equalf(t, tt.want, d, "FromInLoc(%v, %v)", tt.args.t, tt.args.loc)
+			assert.Equalf(t, tt.wantStr, d.String(), "FromInLoc(%v, %v)", tt.args.t, tt.args.loc)
+		})
+	}
+}
