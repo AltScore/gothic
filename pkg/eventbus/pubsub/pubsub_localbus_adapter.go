@@ -1,9 +1,12 @@
 package pubsub
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"fmt"
+	"strconv"
+	"time"
+
+	"cloud.google.com/go/pubsub"
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/AltScore/gothic/pkg/logger"
 	"github.com/AltScore/gothic/pkg/xerrors"
@@ -11,8 +14,6 @@ import (
 	"github.com/modernice/goes/codec"
 	"github.com/modernice/goes/event"
 	"go.uber.org/zap"
-	"strconv"
-	"time"
 )
 
 type PullAdapterConfig struct {
@@ -70,11 +71,12 @@ func (a *PullAdapter) start(ctx context.Context) error {
 	a.ctx, a.cancel = context.WithCancel(ctx)
 
 	go func() {
+		a.logger.Info("Starting PubSub adapter")
 		err := a.sub.Receive(a.ctx, func(ctx context.Context, m *pubsub.Message) {
-			if err := a.publish(ctx, m); err != nil {
-				m.Nack()
-			} else {
+			if err := a.publish(ctx, m); err == nil {
 				m.Ack() // Acknowledge that we've consumed the message.
+			} else {
+				m.Nack()
 			}
 		})
 		if err != nil {
@@ -97,6 +99,15 @@ func (a *PullAdapter) stop() {
 func (a *PullAdapter) publish(ctx context.Context, m *pubsub.Message) error {
 	ev, err := a.unmarshalEvent(m)
 	if err != nil {
+		a.logger.Error(
+			"Failed to unmarshal event data",
+			zap.Error(err),
+			zap.String("event_id", m.Attributes[EventIDMessageAttributeKey]),
+			zap.String("name", m.Attributes[EventNameMessageAttributeKey]),
+			zap.String("agg_id", m.Attributes[AggregateIDMessageAttributeKey]),
+			zap.String("data", string(m.Data)),
+		)
+
 		return err
 	}
 
@@ -106,13 +117,32 @@ func (a *PullAdapter) publish(ctx context.Context, m *pubsub.Message) error {
 
 	errCh := make(chan error)
 
-	err = a.publisher.Publish(ev, eventbus.WithAckChan(errCh), eventbus.WithContext(ctx))
+	if err = a.publisher.Publish(ev, eventbus.WithAckChan(errCh), eventbus.WithContext(ctx)); err != nil {
+		a.logger.Error(
+			"Failed to publish event",
+			zap.Error(err),
+			zap.String("event_id", m.Attributes[EventIDMessageAttributeKey]),
+			zap.String("name", m.Attributes[EventNameMessageAttributeKey]),
+			zap.String("agg_id", m.Attributes[AggregateIDMessageAttributeKey]),
+			zap.String("data", string(m.Data)),
+		)
 
-	if err != nil {
 		return err
 	}
 
-	return <-errCh // Wait for the response to be received
+	err = <-errCh // Wait for the response to be received
+	if err != nil && a.config.Debug {
+		a.logger.Error(
+			"Event handler failed to process event",
+			zap.Error(err),
+			zap.String("event_id", m.Attributes[EventIDMessageAttributeKey]),
+			zap.String("name", m.Attributes[EventNameMessageAttributeKey]),
+			zap.String("agg_id", m.Attributes[AggregateIDMessageAttributeKey]),
+			zap.String("data", string(m.Data)),
+		)
+	}
+
+	return err
 }
 
 func (a *PullAdapter) unmarshalEvent(msg *pubsub.Message) (event.Event, error) {
@@ -144,19 +174,14 @@ func (a *PullAdapter) unmarshalEvent(msg *pubsub.Message) (event.Event, error) {
 		return nil, fmt.Errorf("failed to parse event time '%s': %w", msg.Attributes[EventTimeMessageAttributeKey], err)
 	}
 
-	eventName := msg.Attributes[EventNameMessageAttributeKey]
-
 	data, err := a.encoding.Unmarshal(msg.Data, evName)
 
 	if err != nil {
-		if a.config.Debug {
-			a.logger.Error("Failed to unmarshal event data", zap.Error(err), zap.String("event", eventName), zap.String("data", string(msg.Data)))
-		}
 		return nil, fmt.Errorf("failed to unmarshal event data: %w", err)
 	}
 
 	ev := event.New(
-		eventName,
+		evName,
 		data,
 		event.Aggregate(aggID, aggName, aggVersion),
 		event.ID(evID),
