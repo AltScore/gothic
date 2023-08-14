@@ -9,7 +9,7 @@ import (
 
 type Registrant interface {
 	RegisterTypeEncoder(valueType reflect.Type, enc bsoncodec.ValueEncoder)
-	RegisterTypeDecoder(valueType reflect.Type, enc bsoncodec.ValueEncoder)
+	RegisterTypeDecoder(valueType reflect.Type, enc bsoncodec.ValueDecoder)
 	RegisterInterfaceEncoder(t reflect.Type, enc bsoncodec.ValueEncoder)
 	RegisterInterfaceDecoder(t reflect.Type, enc bsoncodec.ValueDecoder)
 }

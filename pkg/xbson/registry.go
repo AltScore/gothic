@@ -34,13 +34,13 @@ func IsAlreadyRegistered(registrar Registrar) bool {
 // decoders from the bsoncodec.DefaultValueEncoders and bsoncodec.DefaultValueDecoders types, the
 // PrimitiveCodecs type in this package, and all registered registrars.
 func BuildRegistry() *bsoncodec.Registry {
-	builder := bson.NewRegistry()
+	registry := bson.NewRegistry()
 
 	for _, registrar := range registrars {
-		registrar.Register(builder)
+		registrar.Register(registry)
 	}
 
-	return builder
+	return registry
 }
 
 // BuildDefaultRegistry builds the default registry to be used by the mongo driver
