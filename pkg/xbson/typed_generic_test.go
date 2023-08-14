@@ -1,6 +1,7 @@
 package xbson
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"reflect"
@@ -9,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/bson/bsonrw"
 )
 
 type sampleType string
@@ -46,7 +49,8 @@ type sampleTypedTwoDto sampleTypedTwo
 func Test_TypedGeneric_can_encode_and_decode(t *testing.T) {
 
 	// Given a bson registry
-	builder := bson.NewRegistryBuilder()
+	registry := bson.NewRegistry()
+
 	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric](
 		func(t sampleTypedGeneric) string { return t.T() },
 	)
@@ -57,27 +61,25 @@ func Test_TypedGeneric_can_encode_and_decode(t *testing.T) {
 		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedOne)(dto.(*sampleTypedOneDto)) },
 	)
 
-	sampleCodex.Register(builder)
-
-	registry := builder.Build()
+	sampleCodex.Register(registry)
 
 	// Given a typed generic
 	var expected sampleTypedGeneric = &sampleTypedOne{Name: "Alice", Age: 24}
 
 	// When it is encoded
-	bytes, err := bson.MarshalWithRegistry(registry, &expected)
+	bs, err := MarshalWithRegistry(registry, &expected)
 
-	Dump(t, "-- Sample value", bytes)
+	Dump(t, "-- Sample value", bs)
 
 	// Then it should not fail
 	require.NoError(t, err)
 
-	hexBytes := hex.EncodeToString(bytes)
+	hexBytes := hex.EncodeToString(bs)
 	fmt.Println(hexBytes)
 
 	// When it is decoded
 	var actual sampleTypedGeneric
-	err = bson.UnmarshalWithRegistry(registry, bytes, &actual)
+	err = UnmarshalWithRegistry(registry, bs, &actual)
 
 	// Then it should not fail
 	require.NoError(t, err)
@@ -93,7 +95,8 @@ type sampleStruct struct {
 func Test_TypedGeneric_can_be_embedded(t *testing.T) {
 
 	// Given a bson registry
-	builder := bson.NewRegistryBuilder()
+	registry := bson.NewRegistry()
+
 	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric](
 		func(t sampleTypedGeneric) string { return t.T() },
 	)
@@ -103,9 +106,7 @@ func Test_TypedGeneric_can_be_embedded(t *testing.T) {
 		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedOne)(dto.(*sampleTypedOneDto)) },
 	)
 
-	sampleCodex.Register(builder)
-
-	registry := builder.Build()
+	sampleCodex.Register(registry)
 
 	// Given a typed generic
 	var expected = sampleStruct{
@@ -113,25 +114,63 @@ func Test_TypedGeneric_can_be_embedded(t *testing.T) {
 	}
 
 	// When it is encoded
-	bytes, err := bson.MarshalWithRegistry(registry, &expected)
+	bs, err := MarshalWithRegistry(registry, &expected)
 
-	Dump(t, "-- Sample value", bytes)
+	Dump(t, "-- Sample value", bs)
 
 	// Then it should not fail
 	require.NoError(t, err)
 
-	hexBytes := hex.EncodeToString(bytes)
+	hexBytes := hex.EncodeToString(bs)
 	fmt.Println(hexBytes)
 
 	// When it is decoded
 	var actual sampleStruct
-	err = bson.UnmarshalWithRegistry(registry, bytes, &actual)
+	err = UnmarshalWithRegistry(registry, bs, &actual)
 
 	// Then it should not fail
 	require.NoError(t, err)
 
 	// And it should be the same as the original
 	require.Equal(t, expected, actual)
+}
+
+func UnmarshalWithRegistry(registry *bsoncodec.Registry, bs []byte, value interface{}) error {
+	hexBytes := hex.EncodeToString(bs)
+	fmt.Println(hexBytes)
+
+	dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bs))
+	if err != nil {
+		return err
+	}
+
+	if err := dec.SetRegistry(registry); err != nil {
+		return err
+	}
+
+	return dec.Decode(value)
+}
+
+func MarshalWithRegistry(registry *bsoncodec.Registry, value interface{}) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	vw, err := bsonrw.NewBSONValueWriter(buf)
+	if err != nil {
+		panic(err)
+	}
+	enc, err := bson.NewEncoder(vw)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := enc.SetRegistry(registry); err != nil {
+		return nil, err
+	}
+
+	if err := enc.Encode(value); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 type strucWithSlice struct {
@@ -141,7 +180,7 @@ type strucWithSlice struct {
 func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 
 	// Given a bson registry
-	builder := bson.NewRegistryBuilder()
+	registry := bson.NewRegistry()
 	sampleCodex := NewTypedGenericCodex[sampleTypedGeneric](
 		func(t sampleTypedGeneric) string { return t.T() },
 	)
@@ -154,9 +193,7 @@ func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 		func(dto interface{}) sampleTypedGeneric { return (*sampleTypedTwo)(dto.(*sampleTypedTwoDto)) },
 	)
 
-	sampleCodex.Register(builder)
-
-	registry := builder.Build()
+	sampleCodex.Register(registry)
 
 	// Given a typed generic
 	var expected = strucWithSlice{
@@ -167,19 +204,19 @@ func Test_TypedGeneric_can_be_embedded_in_a_slice(t *testing.T) {
 	}
 
 	// When it is encoded
-	bytes, err := bson.MarshalWithRegistry(registry, &expected)
+	bs, err := MarshalWithRegistry(registry, &expected)
 
-	Dump(t, "-- Sample value", bytes)
+	Dump(t, "-- Sample value", bs)
 
 	// Then it should not fail
 	require.NoError(t, err)
 
-	hexBytes := hex.EncodeToString(bytes)
+	hexBytes := hex.EncodeToString(bs)
 	fmt.Println(hexBytes)
 
 	// When it is decoded
 	var actual strucWithSlice
-	err = bson.UnmarshalWithRegistry(registry, bytes, &actual)
+	err = UnmarshalWithRegistry(registry, bs, &actual)
 
 	// Then it should not fail
 	require.NoError(t, err)

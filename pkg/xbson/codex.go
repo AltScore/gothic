@@ -7,8 +7,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/bsonrw"
 )
 
+type Registrant interface {
+	RegisterTypeEncoder(valueType reflect.Type, enc bsoncodec.ValueEncoder)
+	RegisterInterfaceEncoder(t reflect.Type, enc bsoncodec.ValueEncoder)
+	RegisterInterfaceDecoder(t reflect.Type, enc bsoncodec.ValueDecoder)
+}
+
 type Registrar interface {
-	Register(builder *bsoncodec.RegistryBuilder)
+	Register(builder Registrant)
 }
 
 // EncoderDecoder is a bsoncodec.ValueDecoder and bsoncodec.ValueEncoder for a given type
@@ -36,14 +42,14 @@ func NewDecoderEncoder[Entity, Dto, Base any](toDto func(Entity) Dto, fromDto fu
 
 // Register implements the bsoncodec.RegistryBuilder interface
 // It allows the decoderEncoder to be registered with a bsoncodec.RegistryBuilder
-func (d *decoderEncoder[Entity, Dto, Base]) Register(builder *bsoncodec.RegistryBuilder) {
+func (d *decoderEncoder[Entity, Dto, Base]) Register(builder Registrant) {
 	entityType := reflect.TypeOf((*Entity)(nil)).Elem()
 
 	baseType := reflect.TypeOf((*Base)(nil)).Elem()
 
 	builder.RegisterTypeEncoder(baseType, d)
 
-	builder.RegisterHookDecoder(entityType, d)
+	builder.RegisterInterfaceDecoder(entityType, d)
 	// builder.RegisterTypeDecoder(baseType, d)
 }
 

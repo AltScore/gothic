@@ -1,6 +1,7 @@
 package xbson
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"sync"
@@ -40,15 +41,15 @@ func NewTypedGenericCodex[Typed any](getType GetType[Typed]) *TypedGenericCodex[
 	}
 }
 
-var _ bsoncodec.ValueCodec = (*TypedGenericCodex[string])(nil)
+var _ bsoncodec.ValueDecoder = (*TypedGenericCodex[string])(nil)
 var _ bsoncodec.ValueEncoder = (*TypedGenericCodex[string])(nil)
 
 // Register implements the bsoncodec.RegistryBuilder interface
 // It allows the decoderEncoder to be registered with a bsoncodec.RegistryBuilder
-func (t *TypedGenericCodex[Typed]) Register(builder *bsoncodec.RegistryBuilder) {
+func (t *TypedGenericCodex[Typed]) Register(builder Registrant) {
 
-	builder.RegisterHookEncoder(t.valueType, t)
-	builder.RegisterHookDecoder(t.valueType, t)
+	builder.RegisterInterfaceEncoder(t.valueType, t)
+	builder.RegisterInterfaceDecoder(t.valueType, t)
 }
 
 type wrapper struct {
@@ -105,14 +106,28 @@ func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bsoncodec.EncodeContext, writ
 	}
 
 	dto := st.toDto(typed)
-	bytes, err := bson.MarshalWithRegistry(ctx.Registry, dto) // use same registry
 
+	buf := new(bytes.Buffer)
+	vw, err := bsonrw.NewBSONValueWriter(buf)
 	if err != nil {
 		return err
 	}
 
+	enc, err := bson.NewEncoder(vw)
+	if err != nil {
+		return err
+	}
+
+	if err := enc.SetRegistry(ctx.Registry); err != nil {
+		return err
+	}
+
+	if err := enc.Encode(dto); err != nil {
+		return err
+	}
+
 	// Wrap the original value with its type
-	v := wrapper{T: typeName, V: bytes}
+	v := wrapper{T: typeName, V: buf.Bytes()}
 
 	// Encode the wrapped value
 	encoder, err := ctx.Registry.LookupEncoder(reflect.TypeOf(v))
@@ -149,7 +164,16 @@ func (t *TypedGenericCodex[Typed]) DecodeValue(ctx bsoncodec.DecodeContext, read
 
 	dto := st.toDto(result)
 
-	err = bson.UnmarshalWithRegistry(ctx.Registry, v.V, dto)
+	dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(v.V))
+	if err != nil {
+		return err
+	}
+
+	if err := dec.SetRegistry(ctx.Registry); err != nil {
+		return err
+	}
+
+	err = dec.Decode(dto)
 
 	result = st.fromDto(dto)
 
