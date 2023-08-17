@@ -3,17 +3,22 @@ package xvalidator
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-playground/validator/v10"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/AltScore/money/pkg/money"
+	"github.com/AltScore/money/pkg/percent"
+	"github.com/go-playground/validator/v10"
 )
 
 var (
-	validate *validator.Validate
-	timeType = reflect.TypeOf(time.Time{})
+	validate    *validator.Validate
+	timeType    = reflect.TypeOf(time.Time{})
+	moneyType   = reflect.TypeOf(money.Money{})
+	percentType = reflect.TypeOf(percent.Percent(0))
 )
 
 func init() {
@@ -84,6 +89,14 @@ func isGte(fl validator.FieldLevel) bool {
 			t := field.Convert(timeType).Interface().(time.Time) //nolint:forcetypeassert // Already checked for timeType
 
 			return t.After(now) || t.Equal(now)
+		} else if field.Type().ConvertibleTo(moneyType) {
+			p := asFloat(param)
+
+			return field.Convert(moneyType).Interface().(money.Money).Number() >= p
+		} else if field.Type().ConvertibleTo(percentType) {
+			p := asFloat(param)
+
+			return field.Convert(percentType).Interface().(percent.Percent).Number() >= p
 		}
 
 	default: // Nothing to do
@@ -131,6 +144,14 @@ func isGt(fl validator.FieldLevel) bool {
 			t := field.Convert(timeType).Interface().(time.Time) //nolint:forcetypeassert // Already checked for timeType
 
 			return t.After(now)
+		} else if field.Type().ConvertibleTo(moneyType) {
+			p := asFloat(param)
+
+			return field.Convert(moneyType).Interface().(money.Money).Number() > p
+		} else if field.Type().ConvertibleTo(percentType) {
+			p := asFloat(param)
+
+			return field.Convert(percentType).Interface().(percent.Percent).Number() > p
 		}
 	default: // Nothing to do
 	}

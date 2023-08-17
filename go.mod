@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	cloud.google.com/go/pubsub v1.33.0
+	github.com/AltScore/money v1.8.0
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.15.0
