@@ -189,6 +189,24 @@ func (d Date) Min(other Date) Date {
 	return other
 }
 
+// Max returns the latest of the two dates.
+func (d Date) Max(other Date) Date {
+	if d.After(other) {
+		return d
+	}
+	return other
+}
+
+// Earliest returns the earliest of the dates.
+func (d Date) Earliest(other Date) Date {
+	return d.Min(other)
+}
+
+// Latest returns the latest of the dates.
+func (d Date) Latest(other Date) Date {
+	return d.Max(other)
+}
+
 // AsNullable returns the date as a nullable date (pointer to).
 func (d Date) AsNullable() *Date {
 	if d.IsZero() {
