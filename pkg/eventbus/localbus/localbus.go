@@ -23,6 +23,7 @@ type localBus struct {
 	size               int
 	ctx                context.Context
 	lifeCycleListeners []eventbus.LifeCycleListener
+	logEvents          bool
 }
 
 // NewLocalBus creates a new localBus instance and configures it with the given options.
@@ -32,6 +33,10 @@ func NewLocalBus(options ...Option) eventbus.EventBus {
 	}
 
 	bus.applyOptions(options)
+
+	if bus.logger == nil {
+		bus.logger = logger.New()
+	}
 
 	return bus
 }
@@ -51,10 +56,6 @@ func (b *localBus) Start() error {
 
 	if b.ctx == nil {
 		b.ctx = context.Background()
-	}
-
-	if b.logger == nil {
-		b.logger = logger.New()
 	}
 
 	b.eventCh = make(chan *eventbus.EventEnvelope, b.size)
@@ -94,6 +95,7 @@ func (b *localBus) AddLifecycleListener(listener eventbus.LifeCycleListener) {
 // If any of the consumers returns an error, the error will be returned by Publish to the configured callback.
 func (b *localBus) Publish(event eventbus.Event, options ...eventbus.Option) error {
 	if !b.running.Load() {
+		b.logger.Warn("Event bus is not running", zap.String("event_name", event.Name()), zap.String("event_id", event.ID().String()))
 		return eventbus.ErrBusNotRunning
 	}
 
@@ -146,6 +148,12 @@ func (b *localBus) processEvents() {
 }
 
 func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
+	defer func() {
+		if r := recover(); r != nil {
+			b.logger.Error("panic while processing event", zap.Any("error", r))
+		}
+	}()
+
 	event := envelope.Event
 
 	listeners := b.listeners.getConsumers(event.Name())
@@ -163,13 +171,16 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 			return
 		}
 
-	} else {
-		b.logger.Debug(
+	}
+
+	if b.logEvents {
+		b.logger.Info(
 			"Processing event",
 			zap.String("name", event.Name()),
 			zap.String("id", event.ID().String()),
 		)
 	}
+
 	isCallCallbackPending := true
 
 	for _, listener := range listeners {
@@ -194,8 +205,8 @@ func (b *localBus) processEvent(envelope *eventbus.EventEnvelope) {
 func (b *localBus) executeWithRecovery(listener eventbus.EventConsumer, ctx context.Context, event eventbus.Event) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("panic while executing event consumer: %v", r)
-			b.logger.Error("panic while executing event consumer", zap.Any("error", r))
+			err = fmt.Errorf("panic while executing event consumer for event (%s %s): %v", event.Name(), event.ID(), r)
+			b.logger.Error("panic while executing event consumer", zap.Any("error", r), zap.String("event_name", event.Name()), zap.String("event_id", event.ID().String()))
 		}
 	}()
 
@@ -232,5 +243,11 @@ func WithLogger(logger logger.Logger) Option {
 func WithContext(ctx context.Context) Option {
 	return func(bus *localBus) {
 		bus.ctx = ctx
+	}
+}
+
+func WithLogEvents() Option {
+	return func(bus *localBus) {
+		bus.logEvents = true
 	}
 }
