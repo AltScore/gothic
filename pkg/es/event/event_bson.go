@@ -50,7 +50,7 @@ func (e *entry) Metadata() *Metadata {
 	return &Metadata{
 		ID:               ID(e.ID),
 		Name:             e.Name,
-		Time:             time.Unix(e.Time.Unix(), e.TimeNano),
+		Time:             time.Unix(0, e.TimeNano),
 		AggregateName:    e.AggregateName,
 		AggregateID:      e.AggregateID,
 		AggregateVersion: e.AggregateVersion,

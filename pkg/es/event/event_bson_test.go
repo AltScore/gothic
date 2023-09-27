@@ -110,6 +110,8 @@ func Test_EmptyEvent_can_be_unmarshalled(t *testing.T) {
 	require.Equal(t, EmptyEventName, actual.Name())
 	require.Equal(t, 0, version)
 	require.Equal(t, "", name)
+	require.True(t, ev.Time().Equal(actual.Time()))
+	require.Equal(t, ev.Time().Format("2006-01-02T15:04:05.000Z"), actual.Time().Format("2006-01-02T15:04:05.000Z"))
 	require.Empty(t, id)
 }
 
