@@ -2,6 +2,7 @@ package xapi
 
 import (
 	"github.com/labstack/echo/v4"
+	"reflect"
 )
 
 // Validating is an interface that can be used to validate a struct.
@@ -14,7 +15,18 @@ type Validating interface {
 func BindValidated[T Validating](c echo.Context) (T, error) {
 	var t T
 
-	if err := c.Bind(&t); err != nil {
+	var err error
+	if reflect.TypeOf(t).Kind() == reflect.Ptr {
+		// it is a pointer
+		t = reflect.New(reflect.TypeOf(t).Elem()).Interface().(T)
+
+		err = c.Bind(t)
+	} else {
+		// It is not a pointer
+		err = c.Bind(&t)
+	}
+
+	if err != nil {
 		return t, err
 	}
 

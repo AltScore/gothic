@@ -130,14 +130,17 @@ func (m *TestManager) exec() {
 	c.SetParamValues(m.paramValues...)
 
 	// find the handler for the given path
+	var handler echo.HandlerFunc
 
-	if m.handler == nil {
+	if m.handler != nil {
+		handler = m.handler
+	} else {
 		e.Router().Find(m.method, req.URL.Path, c)
-		m.handler = c.Handler()
+		handler = c.Handler()
 	}
 
 	// Apply middlewares
-	chain := xapi.ErrorNormalizerMiddleware()(m.handler)
+	chain := xapi.ErrorNormalizerMiddleware()(handler)
 
 	err := chain(c)
 
