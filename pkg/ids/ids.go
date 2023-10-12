@@ -27,11 +27,29 @@ func (id ID) IsNotEmpty() bool {
 	return !id.IsEmpty()
 }
 
+// SelfOrNew returns a new ID if id is empty, otherwise returns id
+// Deprecated: use OrNew instead
 func (id ID) SelfOrNew() ID {
 	if id.IsNotEmpty() {
 		return id
 	}
 	return New()
+}
+
+// OrNew returns a new ID if id is empty, otherwise returns id
+func (id ID) OrNew() ID {
+	if id.IsEmpty() {
+		return New()
+	}
+	return id
+}
+
+// OrDefault returns the defaultId if id is empty, otherwise returns id
+func (id ID) OrDefault(defaultId ID) ID {
+	if id.IsEmpty() {
+		return defaultId
+	}
+	return id
 }
 
 func (id ID) AsUUID() uuid.UUID {
