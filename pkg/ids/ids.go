@@ -27,6 +27,11 @@ func (id ID) IsNotEmpty() bool {
 	return !id.IsEmpty()
 }
 
+func (id ID) Validate() error {
+	_, err := ParseID(string(id))
+	return err
+}
+
 // SelfOrNew returns a new ID if id is empty, otherwise returns id
 // Deprecated: use OrNew instead
 func (id ID) SelfOrNew() ID {

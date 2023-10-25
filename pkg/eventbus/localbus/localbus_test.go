@@ -6,6 +6,8 @@ import (
 	"github.com/AltScore/gothic/pkg/eventbus"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"math/rand"
+	"sync"
 	"testing"
 	"time"
 )
@@ -106,6 +108,56 @@ func TestLocalBus_reports_unhandled_event_error(t *testing.T) {
 
 	// THEN the callback is called with an error
 	thenHandlerShouldBeCalled[error](t, callbackCalled, eventbus.NewErrUnhandledEvent("other", u))
+}
+func TestLocalBus_handle_many_events(t *testing.T) {
+	// Given a localbus with a listener
+	bus := NewLocalBus(WithBufferSize(1))
+
+	//
+	lock := sync.Mutex{}
+
+	sentEvents := make(map[string]int)
+	receivedEvents := make(map[string]int)
+	count := 0
+	panics := 0
+	listener := func(_ context.Context, event eventbus.Event) error {
+		time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
+		lock.Lock()
+		defer lock.Unlock()
+
+		receivedEvents[event.ID().String()]++
+		count++
+
+		if count%42 == 0 {
+			panics++
+			panic("test panic")
+		}
+		return nil
+	}
+
+	_ = bus.Subscribe("test", listener)
+
+	_ = bus.Start()
+	defer func(bus eventbus.EventBus) {
+		_ = bus.Stop()
+	}(bus)
+
+	// When publishing many events
+	const iterations = 10000
+	for i := 0; i < iterations; i++ {
+		id := uuid.New()
+		sentEvents[id.String()]++
+		_ = bus.Publish(&testEvent{name: "test", id: id})
+	}
+
+	// Then all events are received
+	time.Sleep(100 * time.Millisecond)
+
+	require.Equal(t, iterations, count, "Not all events were received")
+	require.True(t, panics > 0, "No panics were triggered")
+	for id, count := range sentEvents {
+		require.Equal(t, count, receivedEvents[id], "Event %v was not received %v times", id, count)
+	}
 }
 
 func givenASubscriptionOn(name string, bus eventbus.EventBus) chan uuid.UUID {

@@ -65,7 +65,7 @@ func (e Metadata) GetTenant() string {
 // Clone returns a clone of the entity with a new ID and CreatedAt if necessary. Updates UpdatedAt.
 func (e Metadata) Clone(now time.Time) Metadata {
 	return Metadata{
-		ID:        e.ID.SelfOrNew(),
+		ID:        e.ID.OrNew(),
 		CreatedAt: e.createdAtOrNow(now),
 		UpdatedAt: now,
 		Version:   e.Version + 1,
