@@ -30,7 +30,27 @@ var _ EncoderDecoder = (*decoderEncoder[int, int, int])(nil)
 // decoderEncoder is a bsoncodec.ValueDecoder and bsoncodec.ValueEncoder for a given type
 // Entity is the interface type of the entity
 // Dto is the type of the Data Transfer Object to store the entity
-// Base is the type of the base entity that implements the Entity interface
+// Base is the type of the base entity that implements the Entity interface. You typically should use a pointer here.
+// For example, if you have an interface type called MyEntity, and a struct called MyEntityImpl that implements MyEntity,
+// you should use MyEntityImpl as Base, and MyEntity as Entity:
+//
+//	type MyEntity interface {
+//	    // follow methods ...
+//	}
+//	type MyEntityImpl struct {
+//	    MyEntityData
+//	}
+//	var _ MyEntity = (*MyEntityImpl)(nil)
+//
+//	NewDecoderEncoder[MyEntity, MyEntityData, *MyEntityImpl](toDto, fromDto)
+//
+//	func toDto(entity MyEntity) MyEntityData {
+//	    return (entity.(*MyEntityImpl)).MyEntityData
+//	}
+//
+//	func fromDto(dto MyEntityData) MyEntity {
+//	    return &MyEntityImpl{MyEntityData: dto}
+//	}
 type decoderEncoder[Entity, Dto, Base any] struct {
 	toDto   func(Entity) Dto
 	fromDto func(Dto) Entity
