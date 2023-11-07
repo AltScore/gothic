@@ -46,7 +46,7 @@ func TestContextWrongType(t *testing.T) {
 type mockUser struct {
 }
 
-func (m *mockUser) ID() ids.ID {
+func (m *mockUser) ID() ids.Id {
 	panic("should not be called")
 }
 

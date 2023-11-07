@@ -3,111 +3,88 @@ package ids
 import (
 	"bytes"
 	"fmt"
+	guuid "github.com/google/uuid"
+	"github.com/looplab/eventhorizon/uuid"
 
-	"github.com/google/uuid"
 	"github.com/totemcaf/gollections/slices"
 )
 
-// ID is a generic identifier for entities
-type ID string
+// Id is a generic identifier for entities
+type Id = uuid.UUID
 
-var nullId = ID(uuid.MustParse("00000000-0000-0000-0000-000000000000").String())
+var nullId = uuid.MustParse("00000000-0000-0000-0000-000000000000")
 
-func New() ID {
-	return ID(uuid.New().String())
+func New() Id {
+	return uuid.New()
 }
 
-func Empty() ID { return nullId }
+func Empty() Id { return nullId }
 
-func (id ID) IsEmpty() bool {
-	return string(id) == "" || id == nullId
+func IsEmpty(id Id) bool {
+	return id == nullId
 }
 
-func (id ID) IsNotEmpty() bool {
-	return !id.IsEmpty()
+func IsNotEmpty(id Id) bool {
+	return !IsEmpty(id)
 }
 
-func (id ID) Validate() error {
-	_, err := ParseID(string(id))
-	return err
-}
-
-// SelfOrNew returns a new ID if id is empty, otherwise returns id
+// SelfOrNew returns a new Id if id is empty, otherwise returns id
 // Deprecated: use OrNew instead
-func (id ID) SelfOrNew() ID {
-	if id.IsNotEmpty() {
+func SelfOrNew(id Id) Id {
+	if IsNotEmpty(id) {
 		return id
 	}
 	return New()
 }
 
-// OrNew returns a new ID if id is empty, otherwise returns id
-func (id ID) OrNew() ID {
-	if id.IsEmpty() {
+// OrNew returns a new Id if id is empty, otherwise returns id
+func OrNew(id Id) Id {
+	if IsEmpty(id) {
 		return New()
 	}
 	return id
 }
 
 // OrDefault returns the defaultId if id is empty, otherwise returns id
-func (id ID) OrDefault(defaultId ID) ID {
-	if id.IsEmpty() {
+func OrDefault(id Id, defaultId Id) Id {
+	if IsEmpty(id) {
 		return defaultId
 	}
 	return id
 }
 
-func (id ID) AsUUID() uuid.UUID {
-	u, err := uuid.Parse(id.String())
-
-	if err != nil {
-		panic(err)
-	}
-	return u
-}
-
-func ParseID(id string) (ID, error) {
-	if rawId, err := uuid.Parse(id); err == nil {
-		return ID(rawId.String()), nil
+func ParseID(id string) (Id, error) {
+	if parsedId, err := uuid.Parse(id); err == nil {
+		return parsedId, nil
 	} else {
 		return Empty(), err
 	}
 }
 
-func FromUUID(uuid uuid.UUID) ID {
-	return ID(uuid.String())
-}
-
-func FromBytes(bytes []byte) (ID, error) {
-	if rawId, err := uuid.FromBytes(bytes); err == nil {
-		return ID(rawId.String()), nil
+func FromBytes(bytes []byte) (Id, error) {
+	if rawId, err := guuid.FromBytes(bytes); err == nil {
+		return rawId, nil
 	} else {
 		return nullId, err
 	}
 }
 
 // NewID computes a UUID string hashing the provided values
-func NewID(values ...any) ID {
+func NewID(values ...any) Id {
 	str := fmt.Sprintf("%v", values)
-	sha1Uuid := uuid.NewSHA1(uuid.NameSpaceOID, []byte(str))
-	return FromUUID(sha1Uuid)
+	return guuid.NewSHA1(guuid.NameSpaceOID, []byte(str))
 }
 
-func AllToString(ids []ID) []string {
-	return slices.Map(ids, func(id ID) string { return id.String() })
+func AllToString(ids []Id) []string {
+	return slices.Map(ids, func(id Id) string { return id.String() })
 }
 
-func (id ID) String() string {
-	return string(id)
-}
-
-func (id ID) ToBytes() []byte {
-	rawId, _ := uuid.Parse(string(id))
-	idBytes := [16]byte(rawId)
+func ToBytes(id Id) []byte {
+	idBytes := [16]byte(id)
 
 	return idBytes[:]
 }
 
-func (id ID) Compare(other ID) int {
-	return bytes.Compare(id.ToBytes(), other.ToBytes())
+func Compare(id Id, other Id) int {
+	return bytes.Compare(ToBytes(id), ToBytes(other))
 }

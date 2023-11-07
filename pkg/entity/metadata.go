@@ -2,59 +2,60 @@ package entity
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/xcontext"
+	"github.com/AltScore/gothic/v2/pkg/ids"
+	"github.com/AltScore/gothic/v2/pkg/xcontext"
 	"time"
-
-	"github.com/AltScore/gothic/pkg/ids"
 )
 
 // Metadata is the metadata for any entity.
 type Metadata struct {
-	ID        ids.ID    `json:"id" bson:"_id"`
+	ID        ids.Id    `json:"id" bson:"_id"`
 	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
 	Version   int       `json:"version" bson:"version"`
 	Tenant    string    `json:"tenant,omitempty" bson:"tenant,omitempty"`
 }
 
-func New() Metadata {
-	return Metadata{
+type Option func(m *Metadata)
+
+func WithId(id ids.Id) Option {
+	return func(m *Metadata) {
+		m.ID = id
+	}
+}
+
+func At(t time.Time) Option {
+	return func(m *Metadata) {
+		m.CreatedAt = t
+		m.UpdatedAt = t
+	}
+}
+
+func WithTenant(tenant string) Option {
+	return func(m *Metadata) {
+		m.Tenant = tenant
+	}
+}
+
+func WithCtx(ctx context.Context) Option {
+	return func(m *Metadata) {
+		m.Tenant = xcontext.TenantOrDefault(ctx)
+	}
+}
+
+func New(options ...Option) Metadata {
+	m := Metadata{
 		ID: ids.New(),
 	}
-}
 
-func NewAt(now time.Time) Metadata {
-	return Metadata{
-		ID:        ids.New(),
-		CreatedAt: now,
-		UpdatedAt: now,
+	for _, option := range options {
+		option(&m)
 	}
-}
-
-// NewIn creates a new entity with the given context.
-func NewIn(ctx context.Context) Metadata {
-	tenantID := xcontext.TenantOrDefault(ctx)
-
-	return Metadata{
-		ID:     ids.New(),
-		Tenant: tenantID,
-	}
-}
-
-// NewInAt creates a new entity with the given context and time.
-func NewInAt(ctx context.Context, now time.Time) Metadata {
-	tenant := xcontext.TenantOrDefault(ctx)
-
-	return Metadata{
-		ID:        ids.New(),
-		CreatedAt: now,
-		UpdatedAt: now,
-		Tenant:    tenant,
-	}
+	return m
 }
 
 // GetID returns the ID of the entity. Implements Identifiable interfaces.
-func (e Metadata) GetID() ids.ID {
+func (e Metadata) GetID() ids.Id {
 	return e.ID
 }
 
@@ -65,7 +66,7 @@ func (e Metadata) GetTenant() string {
 // Clone returns a clone of the entity with a new ID and CreatedAt if necessary. Updates UpdatedAt.
 func (e Metadata) Clone(now time.Time) Metadata {
 	return Metadata{
-		ID:        e.ID.OrNew(),
+		ID:        ids.OrNew(e.ID),
 		CreatedAt: e.createdAtOrNow(now),
 		UpdatedAt: now,
 		Version:   e.Version + 1,

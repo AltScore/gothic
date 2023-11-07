@@ -14,7 +14,7 @@ const (
 )
 
 type LoanView struct {
-	ID               ids.ID
+	ID               ids.Id
 	Version          int
 	ClientID         ClientID
 	TransactionID    string

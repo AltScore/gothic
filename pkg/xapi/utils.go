@@ -64,7 +64,7 @@ func RealUserFromContext(c echo.Context) (xuser.User, bool) {
 	return UserFromContext(c)
 }
 
-func ParseParamID(c echo.Context, name string) (ids.ID, error) {
+func ParseParamID(c echo.Context, name string) (ids.Id, error) {
 	idStr, err := url.PathUnescape(c.Param(name))
 
 	if err != nil {

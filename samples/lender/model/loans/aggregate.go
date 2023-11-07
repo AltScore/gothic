@@ -16,7 +16,7 @@ type Aggregate struct {
 	es.AggregateBase[*LoanView]
 }
 
-// New creates a new aggregate with a new ID.
+// New creates a new aggregate with a new Id.
 func New() *Aggregate {
 	return &Aggregate{
 		AggregateBase: es.NewAgg[*LoanView](ids.New(), EntityType, nil, es.WithSnapshot(&LoanView{})),
