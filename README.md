@@ -6,7 +6,7 @@
 To install
 
 ```bash
-go get github.com/AltScore/gothic
+go get github.com/AltScore/gothic/v2
 ```
 
 
