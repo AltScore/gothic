@@ -1,7 +1,7 @@
 package xpaging
 
 import (
-	"github.com/AltScore/gothic/pkg/xvalidator"
+	"github.com/AltScore/gothic/v2/pkg/xvalidator"
 )
 
 type PagingOptions struct {

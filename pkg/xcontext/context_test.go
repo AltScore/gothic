@@ -2,7 +2,7 @@ package xcontext
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/ids"
+	"github.com/AltScore/gothic/v2/pkg/ids"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -54,7 +54,7 @@ func (m *mockUser) Name() string {
 	panic("should not be called")
 }
 
-func (m *mockUser) TenantID() string {
+func (m *mockUser) Tenant() string {
 	panic("should not be called")
 }
 

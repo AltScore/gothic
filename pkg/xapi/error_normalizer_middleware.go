@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/AltScore/gothic/pkg/xerrors"
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )

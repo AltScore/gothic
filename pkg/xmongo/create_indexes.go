@@ -2,7 +2,6 @@ package xmongo
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/xlogger"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,7 +9,7 @@ import (
 )
 
 // CreateIndexes creates one or more indexes in the provided collection reporting the result in the log
-func CreateIndexes(logger xlogger.Logger, collection *mongo.Collection, models ...mongo.IndexModel) {
+func CreateIndexes(logger *zap.Logger, collection *mongo.Collection, models ...mongo.IndexModel) {
 	var cancel context.CancelFunc
 	defer func() {
 		if cancel != nil {

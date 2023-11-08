@@ -2,14 +2,13 @@ package xgrpc
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/xlogger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"time"
 )
 
 // NewLoggerInterceptor is a gRPC server-side interceptor that logs requests
-func NewLoggerInterceptor(logger xlogger.Logger) grpc.UnaryServerInterceptor {
+func NewLoggerInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		start := time.Now()
 

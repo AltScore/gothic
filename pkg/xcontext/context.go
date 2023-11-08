@@ -2,17 +2,11 @@ package xcontext
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/xerrors"
-	"github.com/AltScore/gothic/pkg/xuser"
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
+	"github.com/AltScore/gothic/v2/pkg/xuser"
 )
 
 var unauthorized = xerrors.NewUnauthorized("unauthorized")
-
-const (
-	UserCtxKey    = "x-user"
-	TenantCtxKey  = "x-tenant"
-	DefaultTenant = "default"
-)
 
 // User returns the user from the context if it exists.
 // If the user does not exist, returns an unauthorized error.
@@ -34,7 +28,7 @@ func Tenant(ctx context.Context) (tenant string, found bool) {
 	user, found := _user(ctx)
 
 	if found {
-		return user.TenantID(), true
+		return user.Tenant(), true
 	}
 
 	tenant, found = ctx.Value(TenantCtxKey).(string)

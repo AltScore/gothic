@@ -3,7 +3,7 @@ package tm
 import (
 	"testing"
 
-	"github.com/AltScore/gothic/pkg/restest"
+	"github.com/AltScore/gothic/v2/pkg/restest"
 )
 
 // O is a type to create a literal JSON object

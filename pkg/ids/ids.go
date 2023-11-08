@@ -53,7 +53,12 @@ func OrDefault(id Id, defaultId Id) Id {
 	return id
 }
 
-func ParseID(id string) (Id, error) {
+// Parse parses a string into an Id.
+// If the string is empty, returns an empty Id.
+func Parse(id string) (Id, error) {
+	if len(id) == 0 {
+		return Empty(), nil
+	}
 	if parsedId, err := uuid.Parse(id); err == nil {
 		return parsedId, nil
 	} else {
@@ -61,6 +66,18 @@ func ParseID(id string) (Id, error) {
 	}
 }
 
+// MustParse parses a string into an Id.
+// If the string is empty, returns an empty Id.
+// If the string is not a valid Id, panics.
+func MustParse(id string) Id {
+	if parsedId, err := Parse(id); err == nil {
+		return parsedId
+	} else {
+		panic(err)
+	}
+}
+
+// FromBytes converts a byte slice into an Id.
 func FromBytes(bytes []byte) (Id, error) {
 	if rawId, err := guuid.FromBytes(bytes); err == nil {
 		return rawId, nil
@@ -75,16 +92,19 @@ func NewID(values ...any) Id {
 	return guuid.NewSHA1(guuid.NameSpaceOID, []byte(str))
 }
 
+// AllToString converts a slice of Ids into a slice of strings
 func AllToString(ids []Id) []string {
 	return slices.Map(ids, func(id Id) string { return id.String() })
 }
 
+// ToBytes converts an Id into a byte slice
 func ToBytes(id Id) []byte {
 	idBytes := [16]byte(id)
 
 	return idBytes[:]
 }
 
+// Compare compares two Ids
 func Compare(id Id, other Id) int {
 	return bytes.Compare(ToBytes(id), ToBytes(other))
 }
