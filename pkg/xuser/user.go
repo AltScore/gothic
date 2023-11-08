@@ -6,7 +6,7 @@ import (
 
 // User represent the current user performing the request.
 type User interface {
-	ID() ids.Id
+	Id() ids.Id
 	Name() string
 	Tenant() string
 	HasPermission(permission string) bool

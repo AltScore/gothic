@@ -14,7 +14,7 @@ func TestNew(t *testing.T) {
 	// WHEN create new
 	m := New()
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 }
 
@@ -25,7 +25,7 @@ func TestNewAt(t *testing.T) {
 	// WHEN create new
 	m := New(At(now))
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given CreatedAt
@@ -58,7 +58,7 @@ func TestMetadata_Clone(t *testing.T) {
 			},
 		},
 		{
-			name: "with ID",
+			name: "with Id",
 			m:    New(),
 			args: now,
 			want: Metadata{
@@ -110,7 +110,7 @@ func Test_NewIn(t *testing.T) {
 
 	m := New(WithCtx(ctxWithTenant))
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given tenant
@@ -126,7 +126,7 @@ func Test_NewInAt(t *testing.T) {
 
 	m := New(WithCtx(ctxWithTenant), At(now))
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given CreatedAt
