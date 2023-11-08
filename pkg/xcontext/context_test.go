@@ -12,7 +12,7 @@ func TestContextHasUser(t *testing.T) {
 	ctx := WithUser(context.Background(), user)
 
 	// WHEN calls User
-	actual, err := User(ctx)
+	actual, err := GetUser(ctx)
 
 	// THEN
 	require.Nil(t, err)
@@ -24,7 +24,7 @@ func TestContextNoUser(t *testing.T) {
 	ctx := context.Background()
 
 	// WHEN calls User
-	actual, err := User(ctx)
+	actual, err := GetUser(ctx)
 
 	// THEN
 	require.Error(t, err)
@@ -36,7 +36,7 @@ func TestContextWrongType(t *testing.T) {
 	ctx := context.WithValue(context.Background(), UserCtxKey, "not a user")
 
 	// WHEN calls User
-	actual, err := User(ctx)
+	actual, err := GetUser(ctx)
 
 	// THEN
 	require.Error(t, err)

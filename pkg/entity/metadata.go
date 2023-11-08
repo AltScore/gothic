@@ -39,7 +39,7 @@ func WithTenant(tenant string) Option {
 
 func WithCtx(ctx context.Context) Option {
 	return func(m *Metadata) {
-		m.Tenant = xcontext.TenantOrDefault(ctx)
+		m.Tenant = xcontext.GetTenantOrDefault(ctx)
 	}
 }
 
@@ -77,7 +77,7 @@ func (e Metadata) Clone(now time.Time) Metadata {
 func (e Metadata) CloneIn(ctx context.Context, now time.Time) Metadata {
 	clone := e.Clone(now)
 	if e.Tenant == "" {
-		clone.Tenant = xcontext.TenantOrDefault(ctx)
+		clone.Tenant = xcontext.GetTenantOrDefault(ctx)
 	}
 	return clone
 }
