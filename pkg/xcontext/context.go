@@ -2,7 +2,6 @@ package xcontext
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/xcontext"
 	"github.com/AltScore/gothic/v2/pkg/xerrors"
 	"github.com/AltScore/gothic/v2/pkg/xuser"
 )
@@ -20,7 +19,7 @@ func GetUser(ctx context.Context) (xuser.User, error) {
 }
 
 func getUser(ctx context.Context) (xuser.User, bool) {
-	user, isOk := ctx.Value(xcontext.UserCtxKey).(xuser.User)
+	user, isOk := ctx.Value(UserCtxKey).(xuser.User)
 	return user, isOk
 }
 
