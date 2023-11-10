@@ -9,13 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AltScore/gothic/pkg/xapi"
+	"github.com/AltScore/gothic/v2/pkg/xapi"
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/labstack/echo/v4"
 	"github.com/nsf/jsondiff"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/totemcaf/gollections/slices"
 )
 
 const HeaderContentType = "Content-Type"
@@ -27,7 +26,6 @@ type TestManager struct {
 	module                 xapi.Module // this is the subject under test
 	useDefaultErrorHandler bool
 	errorHandler           echo.HTTPErrorHandler
-	handler                echo.HandlerFunc // Deprecated
 	body                   []byte
 	actualErrorResult      error
 	rec                    *httptest.ResponseRecorder
@@ -35,8 +33,6 @@ type TestManager struct {
 	contextAfterCall       echo.Context
 	method                 string
 	path                   string
-	paramNames             []string // Deprected
-	paramValues            []string // Deprecated
 }
 
 type GivenWrapper struct {
@@ -125,19 +121,9 @@ func (m *TestManager) exec() {
 		c.Set(name, value)
 	}
 
-	// Deprecated, use Module
-	c.SetParamNames(m.paramNames...)
-	c.SetParamValues(m.paramValues...)
-
 	// find the handler for the given path
-	var handler echo.HandlerFunc
-
-	if m.handler != nil {
-		handler = m.handler
-	} else {
-		e.Router().Find(m.method, req.URL.Path, c)
-		handler = c.Handler()
-	}
+	e.Router().Find(m.method, req.URL.Path, c)
+	handler := c.Handler()
 
 	// Apply middlewares
 	chain := xapi.ErrorNormalizerMiddleware()(handler)
@@ -194,21 +180,6 @@ func (g *GivenWrapper) Context(name string, value interface{}) *GivenWrapper {
 	return g
 }
 
-// PathParam sets a value in the request context under the given name. Used to store entity id, etc.
-// Deprecated, use Module() and CallsPath() instead
-func (g *GivenWrapper) PathParam(name string, value string) *GivenWrapper {
-
-	idx, found := slices.Index2(g.tm.paramNames, name)
-	if found {
-		g.tm.paramValues[idx] = value
-	} else {
-		g.tm.paramNames = append(g.tm.paramNames, name)
-		g.tm.paramValues = append(g.tm.paramValues, value)
-	}
-
-	return g
-}
-
 // Method sets the method to use
 func (g *GivenWrapper) Method(method string) *GivenWrapper {
 	g.tm.method = method
@@ -224,14 +195,6 @@ func (g *GivenWrapper) Path(path string, args ...interface{}) *GivenWrapper {
 func (g *GivenWrapper) Module(module xapi.Module) *GivenWrapper {
 	g.tm.module = module
 	return g
-}
-
-// Calls execute the request to the handler. A proper initialized echo.Context is build and used as parameter
-// Deprecated, use Module() and CallsPath() instead
-func (w *WhenWrapper) Calls(handler func(c echo.Context) error) *WhenWrapper {
-	w.tm.handler = handler
-	w.tm.exec()
-	return w
 }
 
 // PerformTheCall

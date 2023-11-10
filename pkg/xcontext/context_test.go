@@ -2,7 +2,7 @@ package xcontext
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/ids"
+	"github.com/AltScore/gothic/v2/pkg/ids"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -12,7 +12,7 @@ func TestContextHasUser(t *testing.T) {
 	ctx := WithUser(context.Background(), user)
 
 	// WHEN calls User
-	actual, err := User(ctx)
+	actual, err := GetUser(ctx)
 
 	// THEN
 	require.Nil(t, err)
@@ -24,7 +24,7 @@ func TestContextNoUser(t *testing.T) {
 	ctx := context.Background()
 
 	// WHEN calls User
-	actual, err := User(ctx)
+	actual, err := GetUser(ctx)
 
 	// THEN
 	require.Error(t, err)
@@ -36,7 +36,7 @@ func TestContextWrongType(t *testing.T) {
 	ctx := context.WithValue(context.Background(), UserCtxKey, "not a user")
 
 	// WHEN calls User
-	actual, err := User(ctx)
+	actual, err := GetUser(ctx)
 
 	// THEN
 	require.Error(t, err)
@@ -46,7 +46,7 @@ func TestContextWrongType(t *testing.T) {
 type mockUser struct {
 }
 
-func (m *mockUser) ID() ids.ID {
+func (m *mockUser) Id() ids.Id {
 	panic("should not be called")
 }
 
@@ -54,7 +54,7 @@ func (m *mockUser) Name() string {
 	panic("should not be called")
 }
 
-func (m *mockUser) TenantID() string {
+func (m *mockUser) Tenant() string {
 	panic("should not be called")
 }
 

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/AltScore/gothic/pkg/xerrors"
-	"github.com/AltScore/gothic/pkg/xvalidator"
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
+	"github.com/AltScore/gothic/v2/pkg/xvalidator"
 	"github.com/labstack/echo/v4"
 	"github.com/nsf/jsondiff"
 )

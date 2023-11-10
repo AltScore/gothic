@@ -2,7 +2,7 @@ package entity
 
 import (
 	"context"
-	"github.com/AltScore/gothic/pkg/xcontext"
+	"github.com/AltScore/gothic/v2/pkg/xcontext"
 	"reflect"
 	"testing"
 	"time"
@@ -14,7 +14,7 @@ func TestNew(t *testing.T) {
 	// WHEN create new
 	m := New()
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 }
 
@@ -23,9 +23,9 @@ func TestNewAt(t *testing.T) {
 	now := time.Now()
 
 	// WHEN create new
-	m := NewAt(now)
+	m := New(At(now))
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given CreatedAt
@@ -58,7 +58,7 @@ func TestMetadata_Clone(t *testing.T) {
 			},
 		},
 		{
-			name: "with ID",
+			name: "with Id",
 			m:    New(),
 			args: now,
 			want: Metadata{
@@ -69,7 +69,7 @@ func TestMetadata_Clone(t *testing.T) {
 		},
 		{
 			name: "with CreatedAt",
-			m:    NewAt(otherTime),
+			m:    New(At(otherTime)),
 			args: now,
 			want: Metadata{
 				CreatedAt: otherTime,
@@ -79,7 +79,7 @@ func TestMetadata_Clone(t *testing.T) {
 		},
 		{
 			name: "increase version",
-			m:    NewAt(otherTime).Clone(now).Clone(now),
+			m:    New(At(otherTime)).Clone(now).Clone(now),
 			args: now,
 			want: Metadata{
 				CreatedAt: otherTime,
@@ -108,9 +108,9 @@ func Test_NewIn(t *testing.T) {
 	// WHEN create new
 	ctxWithTenant := context.WithValue(context.Background(), xcontext.TenantCtxKey, "tenant")
 
-	m := NewIn(ctxWithTenant)
+	m := New(WithCtx(ctxWithTenant))
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given tenant
@@ -124,9 +124,9 @@ func Test_NewInAt(t *testing.T) {
 	// WHEN create new
 	ctxWithTenant := context.WithValue(context.Background(), xcontext.TenantCtxKey, "tenant")
 
-	m := NewInAt(ctxWithTenant, now)
+	m := New(WithCtx(ctxWithTenant), At(now))
 
-	// THEN should have a new ID
+	// THEN should have a new Id
 	assert.NotEmpty(t, m.ID)
 
 	// AND should have the given CreatedAt

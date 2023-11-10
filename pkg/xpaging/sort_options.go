@@ -1,7 +1,7 @@
 package xpaging
 
 import (
-	"github.com/AltScore/gothic/pkg/xerrors"
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
 	"regexp"
 	"strings"
 )

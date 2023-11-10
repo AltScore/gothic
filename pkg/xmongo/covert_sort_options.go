@@ -1,7 +1,7 @@
 package xmongo
 
 import (
-	"github.com/AltScore/gothic/pkg/xpaging"
+	"github.com/AltScore/gothic/v2/pkg/xpaging"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

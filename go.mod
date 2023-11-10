@@ -1,28 +1,26 @@
-module github.com/AltScore/gothic
+module github.com/AltScore/gothic/v2
 
 go 1.18
 
 require (
 	cloud.google.com/go/pubsub v1.33.0
-	github.com/AltScore/money v1.8.0
+	github.com/AltScore/money v1.8.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.15.0
 	github.com/google/uuid v1.3.0
 	github.com/labstack/echo/v4 v4.11.1
-	github.com/modernice/goes v0.3.6
+	github.com/looplab/eventhorizon v0.16.0
 	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	github.com/subosito/gotenv v1.4.2
-	github.com/totemcaf/gollections v0.7.0
+	github.com/totemcaf/gollections v0.13.0
 	go.mongodb.org/mongo-driver v1.12.1
-	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/exp v0.0.0-20230811145659-89c5cff77bcb
-	golang.org/x/sync v0.3.0
-	google.golang.org/api v0.136.0
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
+	golang.org/x/sync v0.4.0
 	google.golang.org/genproto v0.0.0-20230807174057-1744710a1577
 	google.golang.org/grpc v1.57.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -79,7 +77,6 @@ require (
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
@@ -91,13 +88,14 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
+	golang.org/x/net v0.16.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
+	google.golang.org/api v0.136.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230807174057-1744710a1577 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect

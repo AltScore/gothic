@@ -1,7 +1,7 @@
 package xgrpc
 
 import (
-	xdate "github.com/AltScore/gothic/pkg/xtime/date"
+	xdate "github.com/AltScore/gothic/v2/pkg/xtime/date"
 	"google.golang.org/genproto/googleapis/type/date"
 )
 

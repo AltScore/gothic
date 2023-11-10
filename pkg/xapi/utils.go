@@ -1,25 +1,24 @@
 package xapi
 
 import (
+	"github.com/AltScore/gothic/v2/pkg/xcontext"
 	"net/http"
 	"net/url"
 
-	"github.com/AltScore/gothic/pkg/ids"
-	"github.com/AltScore/gothic/pkg/xerrors"
-	"github.com/AltScore/gothic/pkg/xuser"
+	"github.com/AltScore/gothic/v2/pkg/ids"
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
+	"github.com/AltScore/gothic/v2/pkg/xuser"
 	"github.com/labstack/echo/v4"
 )
 
-const UserCtxKey = "x-user"
-
 var unauthorized = xerrors.NewUnauthorized("unauthorized")
-
-const ImpersonatingUserKeyName = "ImpersonatingUser"
 
 // UserFromContext returns the authenticated user from the context.
 // If the user does not exist, or it is an invalid struct, found will be false.
 func UserFromContext(c echo.Context) (user xuser.User, found bool) {
-	value := c.Get(UserCtxKey)
+	ctx := c.Request().Context()
+
+	value := ctx.Value(xcontext.UserCtxKey)
 
 	if value == nil {
 		return nil, false
@@ -32,10 +31,31 @@ func UserFromContext(c echo.Context) (user xuser.User, found bool) {
 	return nil, false
 }
 
+// TenantFromContext returns the current user tenant from the API context.
+func TenantFromContext(c echo.Context) (string, bool) {
+	user, found := UserFromContext(c)
+
+	if found {
+		return user.Tenant(), true
+	}
+
+	return "", false
+}
+
+func TenantOrDefault(c echo.Context) string {
+	tenant, found := TenantFromContext(c)
+
+	if found {
+		return tenant
+	}
+
+	return xcontext.DefaultTenant
+}
+
 // UserFromContextOrError returns the authenticated user from the context.
 // If the user does not exist, or it is an invalid struct, returns an error.
 func UserFromContextOrError(c echo.Context) (user xuser.User, err error) {
-	value := c.Get(UserCtxKey)
+	value := c.Get(xcontext.UserCtxKey)
 
 	if value == nil {
 		return nil, unauthorized
@@ -51,7 +71,7 @@ func UserFromContextOrError(c echo.Context) (user xuser.User, err error) {
 // RealUserFromContext returns the real authenticated user.
 // If user was impersonated, it returns the impersonating user. If not, the same user in context is returned.
 func RealUserFromContext(c echo.Context) (xuser.User, bool) {
-	value := c.Get(ImpersonatingUserKeyName)
+	value := c.Get(xcontext.ImpersonatingUserKeyName)
 
 	if value == nil {
 		return UserFromContext(c)
@@ -64,7 +84,7 @@ func RealUserFromContext(c echo.Context) (xuser.User, bool) {
 	return UserFromContext(c)
 }
 
-func ParseParamID(c echo.Context, name string) (ids.ID, error) {
+func ParseParamID(c echo.Context, name string) (ids.Id, error) {
 	idStr, err := url.PathUnescape(c.Param(name))
 
 	if err != nil {
@@ -73,5 +93,5 @@ func ParseParamID(c echo.Context, name string) (ids.ID, error) {
 		return ids.Empty(), echo.NewHTTPError(http.StatusBadRequest, name+" is required")
 	}
 
-	return ids.ParseID(idStr)
+	return ids.Parse(idStr)
 }
