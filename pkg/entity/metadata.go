@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/AltScore/gothic/v2/pkg/ids"
 	"github.com/AltScore/gothic/v2/pkg/xcontext"
+	"github.com/AltScore/gothic/v2/pkg/xeh"
+	eh "github.com/looplab/eventhorizon"
 	"time"
 )
 
@@ -17,6 +19,28 @@ type Metadata struct {
 }
 
 type Option func(m *Metadata)
+
+func New(options ...Option) Metadata {
+	m := Metadata{
+		ID: ids.New(),
+	}
+
+	for _, option := range options {
+		option(&m)
+	}
+	return m
+}
+
+// FromEvent creates an entity metadata from the EventHorizon event
+func FromEvent(event eh.Event) Metadata {
+	return Metadata{
+		ID:        ids.OrNew(event.AggregateID()),
+		CreatedAt: event.Timestamp(),
+		UpdatedAt: event.Timestamp(),
+		Version:   event.Version(),
+		Tenant:    xeh.GetEventTenant(event),
+	}
+}
 
 func WithId(id ids.Id) Option {
 	return func(m *Metadata) {
@@ -41,17 +65,6 @@ func WithCtx(ctx context.Context) Option {
 	return func(m *Metadata) {
 		m.Tenant = xcontext.GetTenantOrDefault(ctx)
 	}
-}
-
-func New(options ...Option) Metadata {
-	m := Metadata{
-		ID: ids.New(),
-	}
-
-	for _, option := range options {
-		option(&m)
-	}
-	return m
 }
 
 // GetID returns the ID of the entity. Implements Identifiable interfaces.
