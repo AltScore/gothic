@@ -136,7 +136,8 @@ func (m *impersonatePartnerUserMiddleware) findImpersonatedUserId(c echo.Context
 }
 
 func (m *impersonatePartnerUserMiddleware) findImpersonatedUser(ctx context.Context, user xuser.User, id ids.Id) (xuser.User, error) {
-	if !user.HasPermission(m.permissionToImpersonate) && !user.HasPermission(m.permissionToImpersonateAll) {
+	cannotImpersonateAll := !user.HasPermission(m.permissionToImpersonateAll)
+	if cannotImpersonateAll && !user.HasPermission(m.permissionToImpersonate) {
 		return nil, NewImpersonationError("User %s does not have permission to impersonate", user.Id())
 	}
 
@@ -145,19 +146,18 @@ func (m *impersonatePartnerUserMiddleware) findImpersonatedUser(ctx context.Cont
 		return nil, NewImpersonationError("%s cannot impersonate %s, does not exists", user.Id(), id)
 	}
 
-	managedUser, ok := impersonated.(ManagedUser)
-
-	if !ok {
-		return nil, NewImpersonationError("%s cannot impersonate %s, it is not a managed user", user.Id(), id)
-	}
-
-	if !user.HasPermission(m.permissionToImpersonateAll) && !managedUser.IsManagedBy(user.Id()) {
-		return nil, NewImpersonationError("%s cannot impersonate %s, it is not managed by %s", user.Id(), id, user.Id())
-	}
-
 	if user.Tenant() != impersonated.Tenant() {
 		m.logger.Warn("impersonation error, different tenant", zap.String("impersonator", user.Id().String()), zap.String("impersonated", id.String()))
 		return nil, NewImpersonationError("%s cannot impersonate %s, it is not in the same tenant", user.Id(), id)
+	}
+
+	if cannotImpersonateAll {
+		// User cannot impersonate all, check if it can impersonate this partner
+		if managedUser, ok := impersonated.(ManagedUser); !ok {
+			return nil, NewImpersonationError("%s cannot impersonate %s, it is not a managed user", user.Id(), id)
+		} else if !managedUser.IsManagedBy(user.Id()) {
+			return nil, NewImpersonationError("%s cannot impersonate %s, it is not managed by %s", user.Id(), id, user.Id())
+		}
 	}
 
 	return impersonated, nil
