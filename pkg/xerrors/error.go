@@ -47,7 +47,7 @@ var (
 	ErrClientCanceled   = New("cancelled", "client cancelled", 460)
 	ErrTimeout          = New("timeout", "timeout", http.StatusGatewayTimeout)
 	ErrGateway          = New("gateway", "gateway", http.StatusBadGateway)
-	ErrUnauthorized     = New("unauthorized", "user did not provided credentials", http.StatusUnauthorized)  // Not authenticated,
+	ErrUnauthorized     = New("unauthorized", "user did not provide credentials", http.StatusUnauthorized)   // Not authenticated,
 	ErrForbidden        = New("forbidden", "user is not allowed to perform operation", http.StatusForbidden) // Not enough permissions
 	ErrInvalidEventType = New("invalid-event-type", "invalid event type", http.StatusInternalServerError)
 	ErrConditionNotMet  = New("condition-not-met", "condition not met", http.StatusPreconditionFailed)
