@@ -48,6 +48,16 @@ func TestValidate(t *testing.T) {
 			email: "simple@",
 			want:  false,
 		},
+		{
+			name:  "valid email used in automatic UAT",
+			email: "john.doe+UAT-a2-5689688D@altscore.ai",
+			want:  true,
+		},
+		{
+			name:  "invalid email used in automatic UAT (colon is not allowed in this format)",
+			email: "john.doe+UAT:a2-5689688D@altscore.ai",
+			want:  false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
