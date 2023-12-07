@@ -167,13 +167,7 @@ func (d Date) Before(other Date) bool {
 }
 
 // Equal reports whether this date is equal to the other.
-// Deprecated: use Equals instead.
 func (d Date) Equal(other Date) bool {
-	return d.IsEqual(other)
-}
-
-// Equals reports whether this date is equal to the other.
-func (d Date) Equals(other Date) bool {
 	return d.IsEqual(other)
 }
 
