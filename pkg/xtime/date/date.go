@@ -146,12 +146,12 @@ func (d Date) IsZero() bool {
 	return d.Time().IsZero()
 }
 
-// Format returns a textual representation of the date in the provided format.
+// Format returns a textual representation of this date in the provided format.
 func (d Date) Format(layout string) string {
 	return d.Time().Format(layout)
 }
 
-// Weekday returns the day of the week specified by the date. Sunday is day 0.
+// Weekday returns the day of the week specified by this date. Sunday is day 0.
 func (d Date) Weekday() time.Weekday {
 	return d.Time().Weekday()
 }
@@ -161,16 +161,25 @@ func (d Date) After(other Date) bool {
 	return d.IsAfter(other)
 }
 
-// Before reports whether the date is before the other.
+// Before reports whether this date is before the other.
 func (d Date) Before(other Date) bool {
 	return d.IsBefore(other)
 }
 
-// Equal reports whether the date is equal to the other.
+// Equal reports whether this date is equal to the other.
+// Deprecated: use Equals instead.
 func (d Date) Equal(other Date) bool {
 	return d.IsEqual(other)
 }
 
+// Equals reports whether this date is equal to the other.
+func (d Date) Equals(other Date) bool {
+	return d.IsEqual(other)
+}
+
+// NonZeroMin returns the earlier of the two dates
+// ignoring zero values.
+// If both are zero, returns Zero.
 func (d Date) NonZeroMin(other Date) Date {
 	if d.IsZero() {
 		return other
@@ -228,6 +237,11 @@ func (d Date) IsAfter(date Date) bool {
 // IsEqual reports whether the date is equal to the other date.
 func (d Date) IsEqual(date Date) bool {
 	return d.Time().Equal(date.Time())
+}
+
+// IsNotEqual reports whether this date is not equal to the other.
+func (d Date) IsNotEqual(other Date) bool {
+	return !d.IsEqual(other)
 }
 
 // IsBetween reports whether the date is between the start and end dates (not inclusive).
