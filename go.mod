@@ -8,7 +8,7 @@ require (
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.16.0
-	github.com/google/uuid v1.4.0
+	github.com/google/uuid v1.5.0
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/looplab/eventhorizon v0.16.0
 	github.com/nsf/jsondiff v0.0.0-20230430225905-43f6cf3098c1
