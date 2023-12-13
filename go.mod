@@ -117,3 +117,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+// use our fork of eventhorizon until out changes were merged
+replace github.com/looplab/eventhorizon => github.com/AltScore/eventhorizon v0.17.0-rc.4

@@ -44,7 +44,7 @@ var (
 	ErrUnknown          = New("unknown", "unknown error found", http.StatusInternalServerError)
 	ErrInvalidArgument  = New("invalid-argument", "invalid argument", http.StatusBadRequest)
 	ErrInvalidState     = New("invalid-state", "invalid state", http.StatusPreconditionFailed)
-	ErrClientCanceled   = New("cancelled", "client cancelled", 460)
+	ErrClientCanceled   = New("canceled", "client canceled", 460)
 	ErrTimeout          = New("timeout", "timeout", http.StatusGatewayTimeout)
 	ErrGateway          = New("gateway", "gateway", http.StatusBadGateway)
 	ErrUnauthorized     = New("unauthorized", "user did not provide credentials", http.StatusUnauthorized)   // Not authenticated,

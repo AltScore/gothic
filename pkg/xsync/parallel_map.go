@@ -9,7 +9,7 @@ import (
 
 type ParallelMapper[Input, Output any] interface {
 	// Map applies the given mapper to each element of the input slice in parallel.
-	// If the context expires before all the mappers are finished, the remaining mappers are cancelled.
+	// If the context expires before all the mappers are finished, the remaining mappers are canceled.
 	// If a mapper fails, the error is returned in the errs slice.
 	// If a mapper succeeds, the result is returned in the results slice.
 	// FUnction returns an error if thera is problem not related to the mapper function.
@@ -42,7 +42,7 @@ type parallelMapper[Input, Output any] struct {
 // with at most maxWorkers in parallel.
 // The results and errors are returned in the same order as the slice.
 // If a maxWait is configured and the context expires before all the mappers are finished,
-// the remaining mappers are cancelled.
+// the remaining mappers are canceled.
 //
 // If a mapper fails, the error is returned in the errs slice.
 // If a mapper succeeds, the result is returned in the results slice.
