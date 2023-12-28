@@ -108,7 +108,7 @@ func (e *EventHandlerErrorRecorder) persistError(ctx context.Context, event eh.E
 		Event:     event,
 	}
 
-	if err := e.store.Save(ctx, eventError); err != nil {
+	if err := e.store.Save(ctx, &eventError); err != nil {
 		e.logger.Error("could not save event error", zap.Error(err))
 		// TODO send error in error channel
 
