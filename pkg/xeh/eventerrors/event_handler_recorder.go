@@ -91,7 +91,10 @@ func (e *EventHandlerErrorRecorder) Close() error {
 
 // wrap wraps the handler to catch the returned errors.
 func (e *EventHandlerErrorRecorder) wrap(handler eh.EventHandler) eh.EventHandler {
-	return wrapper{handler: handler}
+	return wrapper{
+		handler:  handler,
+		recorder: e,
+	}
 }
 
 // persistError persists the error in the database for later processing.
