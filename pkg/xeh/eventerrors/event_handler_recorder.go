@@ -24,7 +24,7 @@ type EventError struct {
 	CreatedAt time.Time `bson:"createdAt"`
 	UserId    *ids.Id   `bson:"userId"` // The user that caused the error, if present
 	Tenant    *string   `bson:"tenant"` // The tenant that caused the error, if present
-	Err       error     `bson:"error"`  // The error returned by the event handler
+	Err       string    `bson:"error"`  // The error returned by the event handler
 	Event     eh.Event  `bson:"event"`  // The event that caused the error
 	Host      string    `bson:"host"`   // This is the machine name
 }
@@ -107,7 +107,7 @@ func (e *EventHandlerErrorRecorder) persistError(ctx context.Context, event eh.E
 		CreatedAt: event.Timestamp(),
 		UserId:    userId,
 		Tenant:    tenant,
-		Err:       err,
+		Err:       err.Error(),
 		Event:     event,
 	}
 
