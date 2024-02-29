@@ -156,6 +156,16 @@ func (w wrapper) HandleEvent(ctx context.Context, event eh.Event) error {
 		return err
 	}
 
+	w.recorder.logger.Error(
+		"error in event handler",
+		zap.Error(err),
+		zap.String("event", event.EventType().String()),
+		zap.String("agg_type", event.AggregateType().String()),
+		zap.String("agg_id", event.AggregateID().String()),
+		zap.Int("agg_version", event.Version()),
+		zap.String("handler", w.handler.HandlerType().String()),
+	)
+
 	if err := w.recorder.persistError(ctx, event, err); err != nil {
 		// Failed to persist the error, so we return it to indicate that the event was not handled.
 		return err
