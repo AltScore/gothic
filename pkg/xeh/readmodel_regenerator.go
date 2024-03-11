@@ -2,6 +2,7 @@ package xeh
 
 import (
 	"context"
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
 
 	eh "github.com/looplab/eventhorizon"
 	localEventBus "github.com/looplab/eventhorizon/eventbus/local"
@@ -87,7 +88,12 @@ func (r *ReadModelRegenerator) HandleCommand(ctx context.Context, command eh.Com
 
 // removeReadModels removes read models for the given aggregate id
 func (r *ReadModelRegenerator) removeReadModels(ctx context.Context, aggregateType eh.AggregateType, id uuid.UUID) error {
-	err := r.readModelRepoByType[aggregateType].Remove(ctx, id)
+	repo, found := r.readModelRepoByType[aggregateType]
+	if !found {
+		return xerrors.NewNotFoundError("read mode repo", "not found for type %s", aggregateType)
+
+	}
+	err := repo.Remove(ctx, id)
 	if err == nil || IsEHNotFound(err) {
 		return nil
 	}
