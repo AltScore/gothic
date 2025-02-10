@@ -27,7 +27,7 @@ require (
 )
 
 // Forced versions to fix vulnerability
-require golang.org/x/net v0.27.0 // indirect
+require golang.org/x/net v0.33.0 // indirect
 
 require (
 	cloud.google.com/go v0.115.0 // indirect
