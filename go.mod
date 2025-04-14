@@ -1,6 +1,7 @@
 module github.com/AltScore/gothic/v2
 
 go 1.22
+toolchain go1.24.1
 
 require (
 	cloud.google.com/go/pubsub v1.40.0
@@ -20,14 +21,14 @@ require (
 	go.mongodb.org/mongo-driver v1.16.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	google.golang.org/genproto v0.0.0-20240723171418-e6d459c13d2a
 	google.golang.org/grpc v1.65.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 // Forced versions to fix vulnerability
-require golang.org/x/net v0.33.0 // indirect
+require golang.org/x/net v0.36.0 // indirect
 
 require (
 	cloud.google.com/go v0.115.0 // indirect
@@ -105,11 +106,11 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/api v0.189.0 // indirect
