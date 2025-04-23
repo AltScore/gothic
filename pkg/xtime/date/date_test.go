@@ -502,5 +502,5 @@ func Test_EndOfDay(t *testing.T) {
 	date := Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)}
 
 	eod := date.EndOfDay()
-	assert.Equal(t, time.Date(2020, 1, 1, 23, 59, 59, 0, time.UTC), eod)
+	assert.Equal(t, time.Date(2020, 1, 1, 23, 59, 59, 999999999, time.UTC), eod)
 }

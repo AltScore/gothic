@@ -158,7 +158,7 @@ func (d Date) Weekday() time.Weekday {
 
 // EndOfDay returns the the full date-time of a Date
 func (d Date) EndOfDay() time.Time {
-	return d.Time().Add(time.Hour * 23).Add(time.Minute * 59).Add(time.Second * 59)
+	return d.Time().Add(time.Hour * 23).Add(time.Minute * 59).Add(time.Second * 59).Add(time.Nanosecond*1e9 - 1)
 }
 
 // After reports whether the date is after the other.
