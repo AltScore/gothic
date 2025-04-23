@@ -156,6 +156,11 @@ func (d Date) Weekday() time.Weekday {
 	return d.Time().Weekday()
 }
 
+// EndOfDay returns the the full date-time of a Date
+func (d Date) EndOfDay() time.Time {
+	return d.Time().Add(time.Hour * 23).Add(time.Minute * 59).Add(time.Second * 59)
+}
+
 // After reports whether the date is after the other.
 func (d Date) After(other Date) bool {
 	return d.IsAfter(other)
@@ -169,6 +174,16 @@ func (d Date) Before(other Date) bool {
 // Equal reports whether this date is equal to the other.
 func (d Date) Equal(other Date) bool {
 	return d.IsEqual(other)
+}
+
+// AfterEqual reports whether the date is after or equal to the other.
+func (d Date) AfterEqual(other Date) bool {
+	return d.IsAfterEqual(other)
+}
+
+// BeforeEqual reports whether this date is before or equal to the other.
+func (d Date) BeforeEqual(other Date) bool {
+	return d.IsBeforeEqual(other)
 }
 
 // NonZeroMin returns the earlier of the two dates
@@ -231,6 +246,16 @@ func (d Date) IsAfter(date Date) bool {
 // IsEqual reports whether the date is equal to the other date.
 func (d Date) IsEqual(date Date) bool {
 	return d.Time().Equal(date.Time())
+}
+
+// IsBeforeEqual reports whether the date is before or equal to the other date.
+func (d Date) IsBeforeEqual(date Date) bool {
+	return d.Time().Before(date.Time()) || d.Time().Equal(date.Time())
+}
+
+// IsAfterEqual reports whether the date is after or equal to the other date.
+func (d Date) IsAfterEqual(date Date) bool {
+	return d.Time().After(date.Time()) || d.Time().Equal(date.Time())
 }
 
 // IsNotEqual reports whether this date is not equal to the other.

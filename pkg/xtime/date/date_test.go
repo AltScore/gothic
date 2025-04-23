@@ -425,3 +425,82 @@ func TestFromInLoc(t *testing.T) {
 		})
 	}
 }
+
+func Test_AfterEqual(t *testing.T) {
+	tests := []struct {
+		name   string
+		fields Date
+		args   Date
+		want   bool
+	}{
+		{
+			name:   "is_before",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			want:   false,
+		},
+		{
+			name:   "is_after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   true,
+		},
+		{
+			name:   "is_equal",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			got := d.AfterEqual(tt.args)
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestDate_BeforeEqual(t *testing.T) {
+
+	tests := []struct {
+		name   string
+		fields Date
+		args   Date
+		want   bool
+	}{
+		{
+			name:   "is_before",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			want:   true,
+		},
+		{
+			name:   "is_after",
+			fields: Date{t: time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   false,
+		},
+		{
+			name:   "is_equal",
+			fields: Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			args:   Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)},
+			want:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := tt.fields
+			got := d.BeforeEqual(tt.args)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_EndOfDay(t *testing.T) {
+	date := Date{t: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)}
+
+	eod := date.EndOfDay()
+	assert.Equal(t, time.Date(2020, 1, 1, 23, 59, 59, 0, time.UTC), eod)
+}
