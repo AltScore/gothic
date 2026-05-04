@@ -1,12 +1,17 @@
 package xbson
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var (
 	registrars []Registrar
+
+	// DefaultRegistry holds the registry produced by BuildDefaultRegistry. In
+	// mongo-driver v2 there is no global default registry on the bson package;
+	// consumers must pass this registry explicitly via
+	// options.Client().SetRegistry(...) or options.Database().SetRegistry(...).
+	DefaultRegistry *bson.Registry
 )
 
 // Register registers a Registrar to the list of registrars.
@@ -31,9 +36,8 @@ func IsAlreadyRegistered(registrar Registrar) bool {
 }
 
 // BuildRegistry creates a new registry configured with the default encoders and
-// decoders from the bsoncodec.DefaultValueEncoders and bsoncodec.DefaultValueDecoders types, the
-// PrimitiveCodecs type in this package, and all registered registrars.
-func BuildRegistry() *bsoncodec.Registry {
+// decoders, plus all registered registrars.
+func BuildRegistry() *bson.Registry {
 	registry := bson.NewRegistry()
 
 	for _, registrar := range registrars {
@@ -43,8 +47,9 @@ func BuildRegistry() *bsoncodec.Registry {
 	return registry
 }
 
-// BuildDefaultRegistry builds the default registry to be used by the mongo driver
-// Previous registries are discarded
+// BuildDefaultRegistry builds the registry and stores it in xbson.DefaultRegistry.
+// In mongo-driver v2 there is no settable global default registry, so consumers
+// must pass xbson.DefaultRegistry explicitly to their mongo client/database.
 func BuildDefaultRegistry() {
-	bson.DefaultRegistry = BuildRegistry()
+	DefaultRegistry = BuildRegistry()
 }

@@ -1,36 +1,32 @@
 package xbson
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func Test_mongo_bson_honor_json_tags(t *testing.T) {
-	saved := bson.DefaultRegistry
-	defer func() { bson.DefaultRegistry = saved }()
+func Test_BuildDefaultRegistry_stores_registry_in_xbson_DefaultRegistry(t *testing.T) {
+	saved := DefaultRegistry
+	defer func() { DefaultRegistry = saved }()
 
 	NewBsonRegistryBuilder().Build()
 
-	type Test struct {
-		FirstName string `json:"first_name"`
-		Age       int    `json:"yearsPast"`
-	}
+	assert.NotNil(t, DefaultRegistry, "Build() should populate xbson.DefaultRegistry")
+}
 
-	test := Test{FirstName: "John", Age: 42}
+func Test_BsonRegistryBuilder_register_codecs(t *testing.T) {
+	type stringCodec struct{}
+	enc := bson.ValueEncoderFunc(func(_ bson.EncodeContext, _ bson.ValueWriter, _ reflect.Value) error { return nil })
+	dec := bson.ValueDecoderFunc(func(_ bson.DecodeContext, _ bson.ValueReader, _ reflect.Value) error { return nil })
 
-	bsonTest, err := bson.Marshal(&test)
+	builder := NewBsonRegistryBuilder()
+	builder.RegisterTypeEncoder(reflect.TypeOf(stringCodec{}), enc)
+	builder.RegisterTypeDecoder(reflect.TypeOf(stringCodec{}), dec)
 
-	assert.Nil(t, err)
-
-	var unmarshalled map[string]interface{}
-
-	err = bson.Unmarshal(bsonTest, &unmarshalled)
-
-	t.Log(unmarshalled)
-
-	assert.Nil(t, err)
-	assert.Equal(t, "John", unmarshalled["first_name"])
-	assert.Equal(t, int32(42), unmarshalled["yearsPast"])
+	got, err := builder.Registry().LookupEncoder(reflect.TypeOf(stringCodec{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, got)
 }

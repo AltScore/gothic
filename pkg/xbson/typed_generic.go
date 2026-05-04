@@ -6,9 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // GetType provides the type for a family of types that can be encoded/decoded to/from a bson document.
@@ -41,11 +39,11 @@ func NewTypedGenericCodex[Typed any](getType GetType[Typed]) *TypedGenericCodex[
 	}
 }
 
-var _ bsoncodec.ValueDecoder = (*TypedGenericCodex[string])(nil)
-var _ bsoncodec.ValueEncoder = (*TypedGenericCodex[string])(nil)
+var _ bson.ValueDecoder = (*TypedGenericCodex[string])(nil)
+var _ bson.ValueEncoder = (*TypedGenericCodex[string])(nil)
 
-// Register implements the bsoncodec.RegistryBuilder interface
-// It allows the decoderEncoder to be registered with a bsoncodec.RegistryBuilder
+// Register implements the Registrar interface.
+// It allows the decoderEncoder to be registered with a bson.Registry.
 func (t *TypedGenericCodex[Typed]) Register(builder Registrant) {
 
 	builder.RegisterInterfaceEncoder(t.valueType, t)
@@ -89,8 +87,8 @@ func (t *TypedGenericCodex[Typed]) lookupSubtype(typeName string) (subtype[Typed
 	return subtype, found
 }
 
-// EncodeValue implements the bsoncodec.ValueEncoder interface
-func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bsoncodec.EncodeContext, writer bsonrw.ValueWriter, value reflect.Value) error {
+// EncodeValue implements the bson.ValueEncoder interface
+func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bson.EncodeContext, writer bson.ValueWriter, value reflect.Value) error {
 	// Encode the original underlying value (it is the struct, not the interface)
 	typed, ok := value.Interface().(Typed)
 	if !ok {
@@ -108,19 +106,8 @@ func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bsoncodec.EncodeContext, writ
 	dto := st.toDto(typed)
 
 	buf := new(bytes.Buffer)
-	vw, err := bsonrw.NewBSONValueWriter(buf)
-	if err != nil {
-		return err
-	}
-
-	enc, err := bson.NewEncoder(vw)
-	if err != nil {
-		return err
-	}
-
-	if err := enc.SetRegistry(ctx.Registry); err != nil {
-		return err
-	}
+	enc := bson.NewEncoder(bson.NewDocumentWriter(buf))
+	enc.SetRegistry(ctx.Registry)
 
 	if err := enc.Encode(dto); err != nil {
 		return err
@@ -138,8 +125,8 @@ func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bsoncodec.EncodeContext, writ
 	return encoder.EncodeValue(ctx, writer, reflect.ValueOf(v))
 }
 
-// DecodeValue implements the bsoncodec.ValueDecoder interface
-func (t *TypedGenericCodex[Typed]) DecodeValue(ctx bsoncodec.DecodeContext, reader bsonrw.ValueReader, value reflect.Value) error {
+// DecodeValue implements the bson.ValueDecoder interface
+func (t *TypedGenericCodex[Typed]) DecodeValue(ctx bson.DecodeContext, reader bson.ValueReader, value reflect.Value) error {
 	// Decode the wrapped value
 	var v wrapper
 	decoder, err := ctx.Registry.LookupDecoder(reflect.TypeOf(&v).Elem())
@@ -164,14 +151,8 @@ func (t *TypedGenericCodex[Typed]) DecodeValue(ctx bsoncodec.DecodeContext, read
 
 	dto := st.toDto(result)
 
-	dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(v.V))
-	if err != nil {
-		return err
-	}
-
-	if err := dec.SetRegistry(ctx.Registry); err != nil {
-		return err
-	}
+	dec := bson.NewDecoder(bson.NewDocumentReader(bytes.NewReader(v.V)))
+	dec.SetRegistry(ctx.Registry)
 
 	err = dec.Decode(dto)
 

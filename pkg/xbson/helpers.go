@@ -2,44 +2,21 @@ package xbson
 
 import (
 	"bytes"
-	"encoding/hex"
-	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func UnmarshalWithRegistry(registry *bsoncodec.Registry, bs []byte, value interface{}) error {
-	hexBytes := hex.EncodeToString(bs)
-	fmt.Println(hexBytes)
-
-	dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bs))
-	if err != nil {
-		return err
-	}
-
-	if err := dec.SetRegistry(registry); err != nil {
-		return err
-	}
+func UnmarshalWithRegistry(registry *bson.Registry, bs []byte, value interface{}) error {
+	dec := bson.NewDecoder(bson.NewDocumentReader(bytes.NewReader(bs)))
+	dec.SetRegistry(registry)
 
 	return dec.Decode(value)
 }
 
-func MarshalWithRegistry(registry *bsoncodec.Registry, value interface{}) ([]byte, error) {
+func MarshalWithRegistry(registry *bson.Registry, value interface{}) ([]byte, error) {
 	buf := new(bytes.Buffer)
-	vw, err := bsonrw.NewBSONValueWriter(buf)
-	if err != nil {
-		panic(err)
-	}
-	enc, err := bson.NewEncoder(vw)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := enc.SetRegistry(registry); err != nil {
-		return nil, err
-	}
+	enc := bson.NewEncoder(bson.NewDocumentWriter(buf))
+	enc.SetRegistry(registry)
 
 	if err := enc.Encode(value); err != nil {
 		return nil, err

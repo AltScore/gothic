@@ -13,8 +13,9 @@ import (
 	"github.com/cenkalti/backoff/v4"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -37,6 +38,7 @@ type MongoInMemory struct {
 	logContainer  bool
 	debug         bool
 	containerName string
+	registry      *bson.Registry
 }
 
 // Connect starts a MongoDB instance in memory and connects to it.
@@ -139,8 +141,11 @@ func (m *MongoInMemory) connectAndRun(f func() error) error {
 		connectionStr = fmt.Sprintf("mongodb://localhost:%s/%s", m.mongoPort, optionsStr)
 
 		clientOptions := options.Client().ApplyURI(connectionStr)
+		if m.registry != nil {
+			clientOptions.SetRegistry(m.registry)
+		}
 
-		m.dbClient, err = mongo.Connect(context.TODO(), clientOptions)
+		m.dbClient, err = mongo.Connect(clientOptions)
 
 		if err != nil {
 			m.log("Could not connect to mongo: %s", err)
@@ -328,5 +333,15 @@ func WithContainerLogs() Option {
 func WithDebug() Option {
 	return func(mim *MongoInMemory) {
 		mim.debug = true
+	}
+}
+
+// WithRegistry sets the BSON registry on the underlying mongo client. This is
+// required for backward compatibility with mongo-driver v1 data — typically
+// callers pass eventhorizon's codec/bson Registry (which encodes UUIDs as
+// strings and decodes both string and binary subtype 04).
+func WithRegistry(registry *bson.Registry) Option {
+	return func(mim *MongoInMemory) {
+		mim.registry = registry
 	}
 }

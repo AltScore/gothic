@@ -3,31 +3,30 @@ package xbson
 import (
 	"reflect"
 
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Registrant interface {
-	RegisterTypeEncoder(valueType reflect.Type, enc bsoncodec.ValueEncoder)
-	RegisterTypeDecoder(valueType reflect.Type, enc bsoncodec.ValueDecoder)
-	RegisterInterfaceEncoder(t reflect.Type, enc bsoncodec.ValueEncoder)
-	RegisterInterfaceDecoder(t reflect.Type, enc bsoncodec.ValueDecoder)
+	RegisterTypeEncoder(valueType reflect.Type, enc bson.ValueEncoder)
+	RegisterTypeDecoder(valueType reflect.Type, enc bson.ValueDecoder)
+	RegisterInterfaceEncoder(t reflect.Type, enc bson.ValueEncoder)
+	RegisterInterfaceDecoder(t reflect.Type, enc bson.ValueDecoder)
 }
 
 type Registrar interface {
 	Register(builder Registrant)
 }
 
-// EncoderDecoder is a bsoncodec.ValueDecoder and bsoncodec.ValueEncoder for a given type
+// EncoderDecoder is a bson.ValueDecoder and bson.ValueEncoder for a given type
 type EncoderDecoder interface {
 	Registrar
-	bsoncodec.ValueDecoder
-	bsoncodec.ValueEncoder
+	bson.ValueDecoder
+	bson.ValueEncoder
 }
 
 var _ EncoderDecoder = (*decoderEncoder[int, int, int])(nil)
 
-// decoderEncoder is a bsoncodec.ValueDecoder and bsoncodec.ValueEncoder for a given type
+// decoderEncoder is a bson.ValueDecoder and bson.ValueEncoder for a given type
 // Entity is the interface type of the entity
 // Dto is the type of the Data Transfer Object to store the entity
 // Base is the type of the base entity that implements the Entity interface. You typically should use a pointer here.
@@ -61,8 +60,8 @@ func NewDecoderEncoder[Entity, Dto, Base any](toDto func(Entity) Dto, fromDto fu
 	return &decoderEncoder[Entity, Dto, Base]{toDto: toDto, fromDto: fromDto}
 }
 
-// Register implements the bsoncodec.RegistryBuilder interface
-// It allows the decoderEncoder to be registered with a bsoncodec.RegistryBuilder
+// Register implements the Registrar interface.
+// It allows the decoderEncoder to be registered with a bson.Registry.
 func (d *decoderEncoder[Entity, Dto, Base]) Register(builder Registrant) {
 	entityType := reflect.TypeOf((*Entity)(nil)).Elem()
 
@@ -74,8 +73,8 @@ func (d *decoderEncoder[Entity, Dto, Base]) Register(builder Registrant) {
 	// builder.RegisterTypeDecoder(baseType, d)
 }
 
-// EncodeValue implements the bsoncodec.ValueEncoder interface. It encodes a Go value into a bson value
-func (d *decoderEncoder[Entity, Dto, Base]) EncodeValue(ctx bsoncodec.EncodeContext, writer bsonrw.ValueWriter, value reflect.Value) error {
+// EncodeValue implements the bson.ValueEncoder interface. It encodes a Go value into a bson value
+func (d *decoderEncoder[Entity, Dto, Base]) EncodeValue(ctx bson.EncodeContext, writer bson.ValueWriter, value reflect.Value) error {
 	entity := value.Interface().(Entity)
 	dto := d.toDto(entity)
 
@@ -89,8 +88,8 @@ func (d *decoderEncoder[Entity, Dto, Base]) EncodeValue(ctx bsoncodec.EncodeCont
 	return encoder.EncodeValue(ctx, writer, valueOfDto)
 }
 
-// DecodeValue implements the bsoncodec.ValueDecoder interface. It decodes a bson value into a Go value
-func (d *decoderEncoder[Entity, Dto, Base]) DecodeValue(ctx bsoncodec.DecodeContext, reader bsonrw.ValueReader, value reflect.Value) error {
+// DecodeValue implements the bson.ValueDecoder interface. It decodes a bson value into a Go value
+func (d *decoderEncoder[Entity, Dto, Base]) DecodeValue(ctx bson.DecodeContext, reader bson.ValueReader, value reflect.Value) error {
 	var dto Dto
 	decoder, err := ctx.Registry.LookupDecoder(reflect.TypeOf(dto))
 	if err != nil {

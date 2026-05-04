@@ -4,7 +4,8 @@ import (
 	"context"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 )
 
@@ -29,8 +30,8 @@ func CreateIndexes(logger *zap.Logger, collection *mongo.Collection, models ...m
 				zap.Error(err),
 			}
 
-			if model.Options.Name != nil {
-				fields = append(fields, zap.String("index", *model.Options.Name))
+			if name := indexNameFromModel(model); name != "" {
+				fields = append(fields, zap.String("index", name))
 			}
 
 			logger.Warn("Failed to create index", fields...)
@@ -40,4 +41,22 @@ func CreateIndexes(logger *zap.Logger, collection *mongo.Collection, models ...m
 
 		cancel()
 	}
+}
+
+// indexNameFromModel resolves the configured index name from the v2 builder, if any.
+func indexNameFromModel(model mongo.IndexModel) string {
+	if model.Options == nil {
+		return ""
+	}
+	opts := &options.IndexOptions{}
+	for _, fn := range model.Options.List() {
+		if fn == nil {
+			continue
+		}
+		_ = fn(opts)
+	}
+	if opts.Name == nil {
+		return ""
+	}
+	return *opts.Name
 }

@@ -2,6 +2,8 @@ package eventerrors
 
 import (
 	"context"
+	"time"
+
 	"github.com/AltScore/gothic/v2/pkg/ids"
 	"github.com/AltScore/gothic/v2/pkg/xcontext"
 	"github.com/AltScore/gothic/v2/pkg/xerrors"
@@ -9,9 +11,8 @@ import (
 	"github.com/looplab/eventhorizon/repo/mongodb"
 	"github.com/looplab/eventhorizon/uuid"
 	"github.com/totemcaf/gollections/ptrs"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.uber.org/zap"
-	"time"
 )
 
 // RetriableError is a marker to identify an error that can be retried.

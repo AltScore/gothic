@@ -8,7 +8,7 @@ import (
 	"github.com/AltScore/gothic/v2/pkg/xbson"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestUuid(t *testing.T) {

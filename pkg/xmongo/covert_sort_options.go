@@ -2,7 +2,7 @@ package xmongo
 
 import (
 	"github.com/AltScore/gothic/v2/pkg/xpaging"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func ConvertSortOptionsToMongo(defaultField string, defaultDirection xpaging.SortDirection, options xpaging.SortOptions) bson.D {
