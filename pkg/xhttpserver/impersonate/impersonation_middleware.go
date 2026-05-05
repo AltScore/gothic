@@ -2,14 +2,15 @@ package impersonate
 
 import (
 	"context"
+
+	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
+
 	"github.com/AltScore/gothic/v2/pkg/ids"
 	"github.com/AltScore/gothic/v2/pkg/xapi"
 	"github.com/AltScore/gothic/v2/pkg/xcontext"
 	"github.com/AltScore/gothic/v2/pkg/xerrors"
 	"github.com/AltScore/gothic/v2/pkg/xuser"
-	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
-	"strings"
 )
 
 const (
@@ -136,11 +137,9 @@ func (m *impersonatePartnerUserMiddleware) findImpersonatedUserId(c echo.Context
 }
 
 func (m *impersonatePartnerUserMiddleware) findImpersonatedUser(ctx context.Context, user xuser.User, id ids.Id) (xuser.User, error) {
-	cannotImpersonateAll := !user.HasPermission(m.permissionToImpersonateAll)
-	if cannotImpersonateAll && !user.HasPermission(m.permissionToImpersonate) {
+	if user.HasPermission(false, m.permissionToImpersonateAll, m.permissionToImpersonate) != nil {
 		return nil, NewImpersonationError("User %s does not have permission to impersonate", user.Id())
 	}
-
 	impersonated, err := m.users.FindById(ctx, id)
 	if err != nil {
 		return nil, NewImpersonationError("%s cannot impersonate %s, does not exists", user.Id(), id)
@@ -151,7 +150,7 @@ func (m *impersonatePartnerUserMiddleware) findImpersonatedUser(ctx context.Cont
 		return nil, NewImpersonationError("%s cannot impersonate %s, it is not in the same tenant", user.Id(), id)
 	}
 
-	if cannotImpersonateAll {
+	if user.HasPermission(false, m.permissionToImpersonateAll) != nil {
 		// User cannot impersonate all, check if it can impersonate this partner
 		if managedUser, ok := impersonated.(ManagedUser); !ok {
 			return nil, NewImpersonationError("%s cannot impersonate %s, it is not a managed user", user.Id(), id)
@@ -179,10 +178,10 @@ func (i *impersonatedUserType) Tenant() string {
 	return i.impersonator.Tenant()
 }
 
-func (i *impersonatedUserType) HasPermission(permission string) bool {
-	if strings.HasSuffix(permission, ".all") {
+func (i *impersonatedUserType) HasPermission(mustAll bool, permission ...string) error {
+	/*	if strings.HasSuffix(permission, ".all") {
 		// Ignore "all" permissions because it is impersonating a specific user
 		return false
-	}
-	return i.impersonator.HasPermission(permission)
+	}*/
+	return i.impersonator.HasPermission(mustAll, permission...)
 }

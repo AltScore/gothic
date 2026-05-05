@@ -2,9 +2,10 @@ package xcontext
 
 import (
 	"context"
-	"github.com/AltScore/gothic/v2/pkg/ids"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContextHasUser(t *testing.T) {
@@ -46,7 +47,11 @@ func TestContextWrongType(t *testing.T) {
 type mockUser struct {
 }
 
-func (m *mockUser) Id() ids.Id {
+func (m *mockUser) Permissions() []string {
+	panic("should not be called")
+}
+
+func (m *mockUser) Id() uuid.UUID {
 	panic("should not be called")
 }
 
@@ -58,6 +63,6 @@ func (m *mockUser) Tenant() string {
 	panic("should not be called")
 }
 
-func (m *mockUser) HasPermission(_ string) bool {
+func (m *mockUser) HasPermission(_ bool, _ ...string) error {
 	panic("should not be called")
 }
