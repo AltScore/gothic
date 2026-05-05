@@ -71,4 +71,4 @@ require (
 )
 
 // use our fork of eventhorizon until out changes were merged
-replace github.com/looplab/eventhorizon => github.com/AltScore/eventhorizon v0.17.0-rc.1.0.20260330195351-1c59b3edc3c1
+replace github.com/looplab/eventhorizon => github.com/AltScore/eventhorizon v0.17.0-rc.1.0.20260428220207-c189cf900968

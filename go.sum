@@ -1,7 +1,7 @@
 dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
-github.com/AltScore/eventhorizon v0.17.0-rc.1.0.20260330195351-1c59b3edc3c1 h1:FWNi/40Nh36si7MSXdPGoRx3L8r+KAd+/QI8RxyxsVM=
-github.com/AltScore/eventhorizon v0.17.0-rc.1.0.20260330195351-1c59b3edc3c1/go.mod h1:nTBX7R8EQxAwaST/40onMLkEoI1Xuj2zTEG9CAUYSKY=
+github.com/AltScore/eventhorizon v0.17.0-rc.1.0.20260428220207-c189cf900968 h1:/N5xITQYq6IYg6YP60mA6kI7XQP+t6pDbotzgJq6D/I=
+github.com/AltScore/eventhorizon v0.17.0-rc.1.0.20260428220207-c189cf900968/go.mod h1:nTBX7R8EQxAwaST/40onMLkEoI1Xuj2zTEG9CAUYSKY=
 github.com/AltScore/money v1.15.1 h1:PPkU2EH94AlHxL0FUOBkB812YA7xTN5Hz+DRm8mtuPw=
 github.com/AltScore/money v1.15.1/go.mod h1:u53a4Uzn6XGqka2zSn/BQqflFVlCiYWfpAGfei0BygY=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEKWjV8V+WSxDXJ4NFATAsZjh8iIbsQIg=
