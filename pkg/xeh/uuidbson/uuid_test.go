@@ -69,6 +69,24 @@ func TestCodec_encode_uuid_into_string_and_back(t *testing.T) {
 	require.Equal(t, original, decoded)
 }
 
+func TestCodec_decodes_legacy_binary_uuid(t *testing.T) {
+	uuidStr := "b4e57d73-34ce-44b2-a57d-7334cea4b2d5"
+	original := uuid.MustParse(uuidStr)
+
+	bsonBytes, err := bson.Marshal(bson.M{
+		"id": bson.Binary{Subtype: bson.TypeBinaryUUID, Data: original[:]},
+	})
+	require.NoError(t, err)
+
+	registry := bson.NewRegistry()
+	(&UUIDCodec2{}).Register(registry)
+
+	var decoded sampleStructWithUuid
+	require.NoError(t, xbson.UnmarshalWithRegistry(registry, bsonBytes, &decoded))
+
+	require.Equal(t, original, decoded.ID)
+}
+
 type sampleStructWithUuidPointer struct {
 	ID *uuid.UUID
 }

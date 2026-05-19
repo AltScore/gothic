@@ -44,3 +44,13 @@ func TestDate_can_marshal_and_unmarshal_in_struct(t *testing.T) {
 
 	require.Equal(t, s, s2)
 }
+
+func TestDate_can_unmarshal_bson_string(t *testing.T) {
+	raw, err := bson.Marshal(bson.D{{Key: "d", Value: "1963-11-29"}})
+	require.NoError(t, err)
+
+	var s sampleStructWithDate
+	require.NoError(t, bson.Unmarshal(raw, &s))
+
+	require.Equal(t, New(1963, 11, 29), s.D)
+}

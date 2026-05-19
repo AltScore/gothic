@@ -108,6 +108,7 @@ func (t *TypedGenericCodex[Typed]) EncodeValue(ctx bson.EncodeContext, writer bs
 	buf := new(bytes.Buffer)
 	enc := bson.NewEncoder(bson.NewDocumentWriter(buf))
 	enc.SetRegistry(ctx.Registry)
+	enc.UseJSONStructTags()
 
 	if err := enc.Encode(dto); err != nil {
 		return err
@@ -153,6 +154,7 @@ func (t *TypedGenericCodex[Typed]) DecodeValue(ctx bson.DecodeContext, reader bs
 
 	dec := bson.NewDecoder(bson.NewDocumentReader(bytes.NewReader(v.V)))
 	dec.SetRegistry(ctx.Registry)
+	dec.UseJSONStructTags()
 
 	err = dec.Decode(dto)
 

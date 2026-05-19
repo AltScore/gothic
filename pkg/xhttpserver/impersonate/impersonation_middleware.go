@@ -2,6 +2,7 @@ package impersonate
 
 import (
 	"context"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -179,9 +180,10 @@ func (i *impersonatedUserType) Tenant() string {
 }
 
 func (i *impersonatedUserType) HasPermission(mustAll bool, permission ...string) error {
-	/*	if strings.HasSuffix(permission, ".all") {
-		// Ignore "all" permissions because it is impersonating a specific user
-		return false
-	}*/
+	for _, p := range permission {
+		if strings.HasSuffix(p, ".all") {
+			return NewImpersonationError("impersonation cannot request '.all' permissions")
+		}
+	}
 	return i.impersonator.HasPermission(mustAll, permission...)
 }

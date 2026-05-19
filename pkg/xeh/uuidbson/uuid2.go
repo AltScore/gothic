@@ -72,9 +72,13 @@ func (u *UUIDCodec2) DecodeValue(_ bson.DecodeContext, vr bson.ValueReader, val 
 			return fmt.Errorf("could not parse UUID string: %s", s)
 		}
 	case bson.TypeBinary:
-		data, _, err := vr.ReadBinary()
+		data, subtype, err := vr.ReadBinary()
 		if err != nil {
 			return err
+		}
+
+		if subtype != bson.TypeBinaryUUID {
+			return fmt.Errorf("expected binary subtype 0x04 for UUID, got 0x%02x", subtype)
 		}
 
 		gid, err := guuid.FromBytes(data)

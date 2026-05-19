@@ -44,6 +44,10 @@ func EqualId(t *testing.T, expected ids.Id, actual any) {
 		bytes, err := uuid.FromBytes(a.Data)
 		require.NoError(t, err)
 		assert.Equal(t, expected, bytes)
+	case string:
+		parsed, err := uuid.Parse(a)
+		require.NoError(t, err)
+		assert.Equal(t, expected, parsed)
 	default:
 		assert.Fail(t, "expected bson.Binary, got %T", actual)
 	}

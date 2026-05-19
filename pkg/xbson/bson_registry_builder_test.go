@@ -29,4 +29,8 @@ func Test_BsonRegistryBuilder_register_codecs(t *testing.T) {
 	got, err := builder.Registry().LookupEncoder(reflect.TypeOf(stringCodec{}))
 	assert.NoError(t, err)
 	assert.NotNil(t, got)
+
+	gotDec, err := builder.Registry().LookupDecoder(reflect.TypeOf(stringCodec{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, gotDec)
 }

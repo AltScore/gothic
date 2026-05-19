@@ -28,7 +28,12 @@ func (d *Date) UnmarshalBSONValue(t byte, data []byte) error {
 			err = ErrInvalidDate
 		}
 	case bson.TypeString:
-		if date, ok := Parse(string(data)); ok {
+		s, _, ok := bsoncore.ReadString(data)
+		if !ok {
+			err = ErrInvalidDate
+			break
+		}
+		if date, ok := Parse(s); ok {
 			d.t = date.Time()
 		} else {
 			err = ErrInvalidDate
