@@ -65,7 +65,6 @@ func TestDate_UnmarshalJSON(t *testing.T) {
 }
 
 func Test_MarshallTime(t *testing.T) {
-	t.Skip("We need to fix this in some way")
 	tests := []struct {
 		name    string
 		want    []byte
@@ -73,24 +72,24 @@ func Test_MarshallTime(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "1 ns",
+			name: "sub-ms (100µs) is truncated",
 			args: time.Date(2019, 1, 1, 0, 0, 0, 123100000, time.UTC),
 			want: []byte(`"2019-01-01T00:00:00.123Z"`),
 		},
 		{
-			name: "0.1 ms",
+			name: "sub-ms (1ns) is truncated",
 			args: time.Date(2019, 1, 1, 0, 0, 0, 123000001, time.UTC),
 			want: []byte(`"2019-01-01T00:00:00.123Z"`),
 		},
 		{
 			name: "10 ms",
 			args: time.Date(2019, 1, 1, 0, 0, 0, 10000000, time.UTC),
-			want: []byte(`"2019-01-01T00:00:00.123Z"`),
+			want: []byte(`"2019-01-01T00:00:00.01Z"`),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := json.Marshal(tt.args)
+			got, err := MarshalTime(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MarshallTime() error = %v, wantErr %v", err, tt.wantErr)
 				return

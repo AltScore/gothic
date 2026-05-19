@@ -3,21 +3,19 @@ package xbson
 import (
 	"reflect"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// BsonRegistryBuilder initializes the mongo driver registry to encode/decode honoring the JSON struct tags.
-// For example, a struct with the following JSON tags:
+// BsonRegistryBuilder wraps a *bson.Registry to ease registration of custom codecs.
 //
-//	type Sample struct {
-//	       FirstName string `json:"first_name"`
-//	}
-//
-// Will serialize the field to BSON as "first_name" instead of "firstname" (default naming strategy).
+// Note: in mongo-driver v2 there is no longer a settable global default registry,
+// nor a registry-level option to honor JSON struct tags. JSON-tag fallback is
+// configured per encoder/decoder via *bson.Encoder.UseJSONStructTags() and
+// *bson.Decoder.UseJSONStructTags(). Build() stores the registry in
+// xbson.DefaultRegistry — consumers must pass it explicitly to their mongo
+// client/database via options.Client().SetRegistry(...).
 type BsonRegistryBuilder struct {
-	*bsoncodec.RegistryBuilder
-	structCodec *bsoncodec.StructCodec
+	registry *bson.Registry
 }
 
 type BsonCodecsRegistrant func(builder *BsonRegistryBuilder)
@@ -25,29 +23,18 @@ type BsonCodecsRegistrant func(builder *BsonRegistryBuilder)
 var DefaultBsonRegistryBuilder = NewBsonRegistryBuilder()
 
 func NewBsonRegistryBuilder() *BsonRegistryBuilder {
-	codec, err := bsoncodec.NewStructCodec(bsoncodec.JSONFallbackStructTagParser)
-
-	if err != nil {
-		panic(err)
-	}
-
-	builder := bson.NewRegistryBuilder()
-	builder.RegisterDefaultEncoder(reflect.Struct, codec)
-	builder.RegisterDefaultDecoder(reflect.Struct, codec)
-
 	return &BsonRegistryBuilder{
-		RegistryBuilder: builder,
-		structCodec:     codec,
+		registry: bson.NewRegistry(),
 	}
 }
 
-// Register a custom codec to the default BSON registry
+// Register a custom codec to the BSON registry
 func (b *BsonRegistryBuilder) Register(registrant BsonCodecsRegistrant) *BsonRegistryBuilder {
 	registrant(b)
 	return b
 }
 
-// RegisterAll register all the custom codecs to the default BSON registry
+// RegisterAll register all the custom codecs to the BSON registry
 func (b *BsonRegistryBuilder) RegisterAll(registrants ...BsonCodecsRegistrant) *BsonRegistryBuilder {
 	for _, registrant := range registrants {
 		b.Register(registrant)
@@ -55,20 +42,31 @@ func (b *BsonRegistryBuilder) RegisterAll(registrants ...BsonCodecsRegistrant) *
 	return b
 }
 
-func (b *BsonRegistryBuilder) RegisterTypeDecoder(t reflect.Type, dec bsoncodec.ValueDecoder) {
-	b.RegistryBuilder.RegisterTypeDecoder(t, dec)
+func (b *BsonRegistryBuilder) RegisterTypeDecoder(t reflect.Type, dec bson.ValueDecoder) {
+	b.registry.RegisterTypeDecoder(t, dec)
 }
 
-func (b *BsonRegistryBuilder) RegisterTypeEncoder(t reflect.Type, dec bsoncodec.ValueEncoder) {
-	b.RegistryBuilder.RegisterTypeEncoder(t, dec)
+func (b *BsonRegistryBuilder) RegisterTypeEncoder(t reflect.Type, enc bson.ValueEncoder) {
+	b.registry.RegisterTypeEncoder(t, enc)
 }
 
-// Build sets this registry as the BSON default
+func (b *BsonRegistryBuilder) RegisterInterfaceEncoder(t reflect.Type, enc bson.ValueEncoder) {
+	b.registry.RegisterInterfaceEncoder(t, enc)
+}
+
+func (b *BsonRegistryBuilder) RegisterInterfaceDecoder(t reflect.Type, dec bson.ValueDecoder) {
+	b.registry.RegisterInterfaceDecoder(t, dec)
+}
+
+// Build stores the registry in xbson.DefaultRegistry. Mongo-driver v2 has no
+// settable global default registry, so consumers must pass xbson.DefaultRegistry
+// explicitly via options.Client().SetRegistry(...) or
+// options.Database().SetRegistry(...).
 func (b *BsonRegistryBuilder) Build() {
-	bson.DefaultRegistry = b.RegistryBuilder.Build()
+	DefaultRegistry = b.registry
 }
 
-// StructCodec provides the configured bsoncodec.StructCodec in registry
-func (b *BsonRegistryBuilder) StructCodec() *bsoncodec.StructCodec {
-	return b.structCodec
+// Registry returns the underlying *bson.Registry for direct use.
+func (b *BsonRegistryBuilder) Registry() *bson.Registry {
+	return b.registry
 }

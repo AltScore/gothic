@@ -4,32 +4,36 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsontype"
-	"go.mongodb.org/mongo-driver/x/bsonx/bsoncore"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/x/bsonx/bsoncore"
 )
 
 var ErrInvalidDate = errors.New("invalid date")
 
-func (d *Date) UnmarshalBSONValue(t bsontype.Type, data []byte) error {
+func (d *Date) UnmarshalBSONValue(t byte, data []byte) error {
 	if d == nil {
 		return bson.ErrDecodeToNil
 	}
 
 	var err error
 
-	switch t {
-	case bsontype.Null:
+	switch bson.Type(t) {
+	case bson.TypeNull:
 		d.t = time.Time{}
 
-	case bsontype.DateTime:
+	case bson.TypeDateTime:
 		if tm, _, ok := bsoncore.ReadTime(data); ok {
 			d.t = From(tm).Time()
 		} else {
 			err = ErrInvalidDate
 		}
-	case bsontype.String:
-		if date, ok := Parse(string(data)); ok {
+	case bson.TypeString:
+		s, _, ok := bsoncore.ReadString(data)
+		if !ok {
+			err = ErrInvalidDate
+			break
+		}
+		if date, ok := Parse(s); ok {
 			d.t = date.Time()
 		} else {
 			err = ErrInvalidDate
@@ -41,6 +45,7 @@ func (d *Date) UnmarshalBSONValue(t bsontype.Type, data []byte) error {
 	return err
 }
 
-func (d Date) MarshalBSONValue() (bsontype.Type, []byte, error) {
-	return bson.MarshalValue(d.Time())
+func (d Date) MarshalBSONValue() (byte, []byte, error) {
+	t, b, err := bson.MarshalValue(d.Time())
+	return byte(t), b, err
 }

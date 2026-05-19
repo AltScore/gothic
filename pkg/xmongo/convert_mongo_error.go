@@ -2,9 +2,10 @@ package xmongo
 
 import (
 	"fmt"
-	"github.com/AltScore/gothic/v2/pkg/xerrors"
 	"regexp"
 	"strings"
+
+	"github.com/AltScore/gothic/v2/pkg/xerrors"
 
 	"go.uber.org/zap"
 )

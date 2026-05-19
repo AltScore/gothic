@@ -8,7 +8,7 @@ import (
 	"github.com/AltScore/gothic/v2/pkg/xbson"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestUuid(t *testing.T) {
@@ -67,6 +67,24 @@ func TestCodec_encode_uuid_into_string_and_back(t *testing.T) {
 
 	// THEN the decoded object should be the same as the original
 	require.Equal(t, original, decoded)
+}
+
+func TestCodec_decodes_legacy_binary_uuid(t *testing.T) {
+	uuidStr := "b4e57d73-34ce-44b2-a57d-7334cea4b2d5"
+	original := uuid.MustParse(uuidStr)
+
+	bsonBytes, err := bson.Marshal(bson.M{
+		"id": bson.Binary{Subtype: bson.TypeBinaryUUID, Data: original[:]},
+	})
+	require.NoError(t, err)
+
+	registry := bson.NewRegistry()
+	(&UUIDCodec2{}).Register(registry)
+
+	var decoded sampleStructWithUuid
+	require.NoError(t, xbson.UnmarshalWithRegistry(registry, bsonBytes, &decoded))
+
+	require.Equal(t, original, decoded.ID)
 }
 
 type sampleStructWithUuidPointer struct {

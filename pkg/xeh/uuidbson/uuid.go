@@ -5,9 +5,7 @@ import (
 
 	"github.com/AltScore/gothic/v2/pkg/xbson"
 	"github.com/looplab/eventhorizon/uuid"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsoncodec"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type UUIDCodec struct {
@@ -26,28 +24,28 @@ func (u *UUIDCodec) Register(builder xbson.Registrant) {
 }
 
 // EncodeValue Implement the ValueEncoder interface method.
-func (u *UUIDCodec) EncodeValue(_ bsoncodec.EncodeContext, vw bsonrw.ValueWriter, val reflect.Value) error {
+func (u *UUIDCodec) EncodeValue(_ bson.EncodeContext, vw bson.ValueWriter, val reflect.Value) error {
 	if !val.Type().AssignableTo(reflect.TypeOf(uuid.UUID{})) {
-		return bsoncodec.ValueEncoderError{Name: "UUIDCodec.EncodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
+		return bson.ValueEncoderError{Name: "UUIDCodec.EncodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
 	}
 
 	uu, ok := val.Interface().(uuid.UUID)
 
 	if !ok {
-		return bsoncodec.ValueEncoderError{Name: "UUIDCodec.EncodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
+		return bson.ValueEncoderError{Name: "UUIDCodec.EncodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
 	}
 
 	return vw.WriteString(uu.String())
 }
 
 // DecodeValue Implement the ValueDecoder interface method.
-func (u *UUIDCodec) DecodeValue(_ bsoncodec.DecodeContext, vr bsonrw.ValueReader, val reflect.Value) error {
+func (u *UUIDCodec) DecodeValue(_ bson.DecodeContext, vr bson.ValueReader, val reflect.Value) error {
 	if !val.CanSet() || val.Type() != u.typeOfUUID {
-		return bsoncodec.ValueDecoderError{Name: "UUIDCodec.DecodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
+		return bson.ValueDecoderError{Name: "UUIDCodec.DecodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
 	}
 
 	if vr.Type() != bson.TypeString {
-		return bsoncodec.ValueDecoderError{Name: "UUIDCodec.DecodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
+		return bson.ValueDecoderError{Name: "UUIDCodec.DecodeValue", Types: []reflect.Type{u.typeOfUUID}, Received: val}
 	}
 
 	str, err := vr.ReadString()
